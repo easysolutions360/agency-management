@@ -1604,6 +1604,17 @@ const App = () => {
           </div>
         </div>
 
+        {/* Search Box */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search AMC projects by project name, customer name, or type..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full table-auto">
             <thead>
