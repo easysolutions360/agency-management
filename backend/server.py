@@ -750,19 +750,19 @@ async def record_amc_payment(project_id: str, payment_request: AMCPaymentRequest
     )
     await db.payments.insert_one(payment_obj.dict())
     
-    # Create ledger entry
+    # Create ledger entry (customer pays AMC)
+    # Get current balance before adding this transaction
+    current_balance = await get_customer_balance(project["customer_id"])
+    
     ledger_entry = CustomerLedger(
         customer_id=project["customer_id"],
         transaction_type="credit",
         amount=payment_request.amount,
         description=f"AMC payment received for: {project['name']}",
         reference_type="amc",
-        reference_id=project_id
+        reference_id=project_id,
+        balance=current_balance + payment_request.amount  # New balance after this credit
     )
-    
-    # Calculate balance
-    customer_balance = await get_customer_balance(project["customer_id"])
-    ledger_entry.balance = customer_balance + payment_request.amount
     
     await db.ledger.insert_one(ledger_entry.dict())
     
