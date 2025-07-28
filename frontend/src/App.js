@@ -389,7 +389,7 @@ const App = () => {
       return;
     }
     
-    const confirmMessage = `Record AMC payment of $${amcAmount.toLocaleString()} for project: ${amcProject.project_name}?`;
+    const confirmMessage = `Record AMC payment of ₹${amcAmount.toLocaleString()} for project: ${amcProject.project_name}?`;
     if (window.confirm(confirmMessage)) {
       try {
         await axios.post(`${API}/amc-payment/${amcProject.project_id}`, {
