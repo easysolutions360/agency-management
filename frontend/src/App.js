@@ -60,6 +60,7 @@ const App = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectDomains, setProjectDomains] = useState([]);
   const [domains, setDomains] = useState([]);
+  const [domainsForRenewal, setDomainsForRenewal] = useState([]);
   const [amcProjects, setAmcProjects] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
