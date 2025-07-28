@@ -728,7 +728,7 @@ const App = () => {
                   </td>
                   <td className="px-4 py-2 font-medium">{project.name}</td>
                   <td className="px-4 py-2">{project.type}</td>
-                  <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
+                  <td className="px-4 py-2">₹{project.amount.toLocaleString()}</td>
                   <td className="px-4 py-2">
                     <div className="text-sm">
                       <p>{new Date(project.start_date).toLocaleDateString()}</p>
