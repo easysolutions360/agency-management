@@ -698,6 +698,13 @@ const App = () => {
             onChange={(e) => setProjectForm({ ...projectForm, amount: e.target.value })}
           />
           <FormInput
+            label="AMC Amount"
+            type="number"
+            value={projectForm.amc_amount}
+            onChange={(e) => setProjectForm({ ...projectForm, amc_amount: e.target.value })}
+            required={false}
+          />
+          <FormInput
             label="Start Date"
             type="date"
             value={projectForm.start_date}
