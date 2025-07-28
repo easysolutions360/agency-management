@@ -157,6 +157,37 @@ class ProjectWithDetails(BaseModel):
     domains: List[DomainHosting]
     created_at: datetime
 
+# New models for enhanced payment functionality
+class DomainRenewalRequest(BaseModel):
+    domain_id: str
+    payment_type: str  # "client" or "agency"
+    notes: str = ""
+
+class AMCPaymentRequest(BaseModel):
+    project_id: str
+    amount: float
+    payment_date: datetime = Field(default_factory=datetime.utcnow)
+
+class PaymentStatus(BaseModel):
+    project_id: str
+    total_amount: float
+    paid_amount: float
+    remaining_amount: float
+    payment_status: str
+    amc_amount: float
+    amc_due_date: Optional[date] = None
+    amc_paid: bool = False
+
+class CustomerPaymentSummary(BaseModel):
+    customer_id: str
+    customer_name: str
+    total_projects: int
+    total_project_amount: float
+    total_paid_amount: float
+    outstanding_amount: float
+    credit_balance: float
+    recent_payments: List[dict]
+
 # Customer Routes
 @api_router.post("/customers", response_model=Customer)
 async def create_customer(customer: CustomerCreate):
