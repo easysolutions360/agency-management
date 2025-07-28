@@ -282,10 +282,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Customer Management API"
-    - "Project Management API"
-    - "Domain/Hosting Management API"
-    - "Dashboard API with Expiring Domains"
+    - "Enhanced Payment System with Project AMC Support"
+    - "Domain Renewal Payment System"
+    - "AMC Payment Processing with Auto-Renewal"
+    - "Enhanced Customer Ledger and Payment Tracking"
+    - "Enhanced Project Management UI with AMC Support"
+    - "Domain Renewal Management with Payment Options"
+    - "AMC Payment Recording Interface"
+    - "Customer Payment Summary and Ledger Views"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
