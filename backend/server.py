@@ -342,9 +342,6 @@ async def get_domain(domain_id: str):
     if isinstance(domain.get('validity_date'), str):
         domain['validity_date'] = datetime.fromisoformat(domain['validity_date']).date()
     return DomainHosting(**domain)
-    if not domain:
-        raise HTTPException(status_code=404, detail="Domain not found")
-    return DomainHosting(**domain)
 
 @api_router.put("/domains/{domain_id}", response_model=DomainHosting)
 async def update_domain_hosting(domain_id: str, domain_update: DomainHostingUpdate):
