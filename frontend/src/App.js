@@ -1028,6 +1028,8 @@ const App = () => {
                     <th className="px-4 py-2 text-left">Project Name</th>
                     <th className="px-4 py-2 text-left">Type</th>
                     <th className="px-4 py-2 text-left">Amount</th>
+                    <th className="px-4 py-2 text-left">Paid</th>
+                    <th className="px-4 py-2 text-left">Status</th>
                     <th className="px-4 py-2 text-left">Start Date</th>
                     <th className="px-4 py-2 text-left">End Date</th>
                     <th className="px-4 py-2 text-left">Actions</th>
@@ -1039,6 +1041,18 @@ const App = () => {
                       <td className="px-4 py-2 font-medium">{project.name}</td>
                       <td className="px-4 py-2">{project.type}</td>
                       <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
+                      <td className="px-4 py-2">${(project.paid_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          project.payment_status === "paid" 
+                            ? "bg-green-100 text-green-800"
+                            : project.payment_status === "partial"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}>
+                          {project.payment_status || "pending"}
+                        </span>
+                      </td>
                       <td className="px-4 py-2">{new Date(project.start_date).toLocaleDateString()}</td>
                       <td className="px-4 py-2">
                         {project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}
@@ -1060,6 +1074,19 @@ const App = () => {
                           >
                             Delete
                           </button>
+                          {project.payment_status !== "paid" && (
+                            <button
+                              onClick={() => openPaymentModal(
+                                project.customer_id, 
+                                "project_advance", 
+                                project.id, 
+                                `Payment for ${project.name}`
+                              )}
+                              className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                            >
+                              Add Payment
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
