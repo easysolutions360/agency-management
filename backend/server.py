@@ -640,6 +640,18 @@ async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
         )
         await db.payments.insert_one(payment_obj.dict())
     
+    elif renewal_request.payment_type == "client":
+        # Client pays directly - create payment record as completed
+        payment_obj = Payment(
+            customer_id=project["customer_id"],
+            type="domain_renewal_client",
+            reference_id=domain_id,
+            amount=domain["renewal_amount"],
+            description=f"Domain renewal for {domain['domain_name']} (Client paid directly)",
+            status="completed"
+        )
+        await db.payments.insert_one(payment_obj.dict())
+    
     return {"message": "Domain renewed successfully", "new_validity_date": new_validity.isoformat()}
 
 @api_router.post("/domain-renewal-payment/{domain_id}")
