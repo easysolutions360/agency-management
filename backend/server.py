@@ -216,7 +216,12 @@ async def create_domain_hosting(domain: DomainHostingCreate):
     
     domain_dict = domain.dict()
     domain_obj = DomainHosting(**domain_dict)
-    await db.domains.insert_one(domain_obj.dict())
+    
+    # Convert date objects to strings for MongoDB storage
+    domain_data = domain_obj.dict()
+    domain_data['validity_date'] = domain_data['validity_date'].isoformat()
+    
+    await db.domains.insert_one(domain_data)
     return domain_obj
 
 @api_router.get("/domains", response_model=List[DomainHosting])
