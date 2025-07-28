@@ -364,6 +364,7 @@ const App = () => {
       fetchProjects();
       fetchDashboardProjects();
       fetchCustomerBalances();
+      fetchCustomerPaymentSummaries();
       alert("Payment recorded successfully!");
     } catch (error) {
       console.error("Error recording payment:", error);
