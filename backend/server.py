@@ -63,6 +63,7 @@ class ProjectCreate(BaseModel):
     type: str
     name: str
     amount: float
+    amc_amount: float = 0.0
     start_date: date
     end_date: Optional[date] = None
 
