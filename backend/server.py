@@ -483,6 +483,19 @@ async def get_amc_projects():
         # Calculate AMC due date (1 year after project completion)
         amc_due_date = project_end_date + timedelta(days=365)
         
+        # Check if AMC has already been paid
+        amc_paid_until = project.get('amc_paid_until')
+        if amc_paid_until:
+            # Convert to date if string
+            if isinstance(amc_paid_until, str):
+                amc_paid_until_date = datetime.fromisoformat(amc_paid_until).date()
+            else:
+                amc_paid_until_date = amc_paid_until
+            
+            # If AMC is paid until a future date, skip this project
+            if amc_paid_until_date > current_date:
+                continue
+        
         # Check if AMC is due (within next 30 days or already due)
         days_until_amc = (amc_due_date - current_date).days
         if days_until_amc <= 30:  # AMC due within 30 days
@@ -502,7 +515,8 @@ async def get_amc_projects():
                     "customer_name": customer["name"],
                     "customer_email": customer["email"],
                     "customer_phone": customer["phone"],
-                    "is_overdue": days_until_amc < 0
+                    "is_overdue": days_until_amc < 0,
+                    "amc_paid_until": amc_paid_until
                 })
     
     # Sort by days_until_amc (most urgent first)
