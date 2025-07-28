@@ -808,6 +808,8 @@ const App = () => {
       currentData = projects;
     } else if (reportsTab === "domains") {
       currentData = domains;
+    } else if (reportsTab === "renewals") {
+      currentData = domainsForRenewal;
     }
 
     // Apply search filter
