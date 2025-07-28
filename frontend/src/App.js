@@ -257,7 +257,9 @@ const App = () => {
         hosting_provider: "",
         username: "",
         password: "",
-        validity_date: ""
+        validity_date: "",
+        renewal_amount: "",
+        payment_type: "client"
       });
       fetchDashboardProjects();
       fetchExpiringDomains();
@@ -270,6 +272,66 @@ const App = () => {
       console.error("Error adding domain:", error);
       alert("Error adding domain");
     }
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/payments`, paymentForm);
+      setPaymentForm({
+        customer_id: "",
+        type: "",
+        reference_id: "",
+        amount: "",
+        description: ""
+      });
+      setPaymentModal(false);
+      fetchProjects();
+      fetchDashboardProjects();
+      fetchCustomerBalances();
+      alert("Payment recorded successfully!");
+    } catch (error) {
+      console.error("Error recording payment:", error);
+      alert("Error recording payment");
+    }
+  };
+
+  const handleRenewalSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/domain-renewal/${selectedDomain.id}`, renewalForm);
+      setRenewalForm({
+        new_validity_date: "",
+        amount: "",
+        payment_type: "client"
+      });
+      setRenewalModal(false);
+      setSelectedDomain(null);
+      fetchDomains();
+      fetchDashboardProjects();
+      fetchExpiringDomains();
+      fetchCustomerBalances();
+      alert("Domain renewed successfully!");
+    } catch (error) {
+      console.error("Error renewing domain:", error);
+      alert("Error renewing domain");
+    }
+  };
+
+  const openPaymentModal = (customer_id, type, reference_id, description) => {
+    setPaymentForm({
+      customer_id,
+      type,
+      reference_id,
+      amount: "",
+      description
+    });
+    setPaymentModal(true);
+  };
+
+  const openRenewalModal = (domain) => {
+    setSelectedDomain(domain);
+    setRenewalModal(true);
   };
 
   // Delete functions
