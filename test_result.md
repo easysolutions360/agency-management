@@ -311,6 +311,8 @@ test_plan:
     - "Domain Renewal Management with Payment Options"
     - "AMC Payment Recording Interface"
     - "Customer Payment Summary and Ledger Views"
+    - "Project End Date Non-Mandatory Implementation"
+    - "Customer Ledger Entry on Project Creation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
