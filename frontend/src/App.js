@@ -206,11 +206,11 @@ const App = () => {
     }
   };
 
-  const viewCustomerLedger = (customerId, customerName) => {
+  const viewCustomerLedger = async (customerId, customerName) => {
     setSelectedCustomer({ id: customerId, name: customerName });
-    fetchCustomerLedger(customerId);
-    // You might want to open a modal or navigate to a different view
-    // For now, we'll just set the selected customer
+    setLedgerCurrentPage(1); // Reset to first page
+    await fetchCustomerLedger(customerId);
+    setLedgerModal(true); // Open the modal
   };
 
   const togglePasswordVisibility = (domainId) => {
