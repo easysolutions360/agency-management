@@ -1269,6 +1269,12 @@ const App = () => {
             isActive={activeTab === "amc"}
             onClick={() => setActiveTab("amc")}
           />
+          <TabButton
+            tab="ledger"
+            label="Customer Ledger"
+            isActive={activeTab === "ledger"}
+            onClick={() => setActiveTab("ledger")}
+          />
         </div>
 
         {activeTab === "dashboard" && renderDashboard()}
