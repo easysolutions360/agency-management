@@ -126,7 +126,7 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -140,6 +140,9 @@ backend:
       - working: true
         agent: "main"
         comment: "FIXED: Enhanced domain renewal system to properly handle both payment types. Added missing logic for 'client' payment type - when client pays directly, creates completed payment record without ledger debt. Fixed balance calculation for agency payments. Both payment options now work correctly with proper payment records created."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Bug Fix 3 - Domain Renewal testing completed successfully. Both client and agency payment types work correctly without errors. Client payment creates completed payment record, agency payment creates customer debt in ledger. Domain validity extended by 1 year in both cases. Payment types correctly stored and customer ledger entries created for agency payments."
 
   - task: "AMC Payment Processing with Auto-Renewal"
     implemented: true
