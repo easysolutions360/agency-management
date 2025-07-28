@@ -228,13 +228,15 @@ const App = () => {
     try {
       await axios.post(`${API}/projects`, {
         ...projectForm,
-        amount: parseFloat(projectForm.amount)
+        amount: parseFloat(projectForm.amount),
+        amc_amount: parseFloat(projectForm.amc_amount) || 0
       });
       setProjectForm({
         customer_id: "",
         type: "",
         name: "",
         amount: "",
+        amc_amount: "",
         start_date: "",
         end_date: ""
       });
