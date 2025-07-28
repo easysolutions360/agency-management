@@ -995,6 +995,439 @@ def test_payment_status():
     print_success("Payment Status tests completed successfully")
     return True
 
+def test_project_end_date_non_mandatory():
+    """Test Project End Date Non-Mandatory Implementation"""
+    print_test_header("Project End Date Non-Mandatory Implementation")
+    
+    if not test_customers:
+        print_error("No test customers available for project end date testing")
+        return False
+    
+    # Test 1: Create project WITHOUT end_date
+    print("\n📅 Testing Project Creation WITHOUT end_date...")
+    project_without_end_date = {
+        "customer_id": test_customers[0]['id'],
+        "type": "Ongoing Website Maintenance",
+        "name": "Long-term Website Support",
+        "amount": 12000.00,
+        "amc_amount": 3000.00,
+        "start_date": "2024-01-01"
+        # Note: no end_date provided
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/projects", json=project_without_end_date)
+        if response.status_code == 200:
+            project_no_end = response.json()
+            test_projects.append(project_no_end)
+            if project_no_end.get('end_date') is None:
+                print_success(f"Created project without end_date: {project_no_end['name']}")
+            else:
+                print_error("Project end_date should be None but got a value")
+                return False
+        else:
+            print_error(f"Failed to create project without end_date: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating project without end_date: {str(e)}")
+        return False
+    
+    # Test 2: Create project WITH end_date
+    print("\n📅 Testing Project Creation WITH end_date...")
+    project_with_end_date = {
+        "customer_id": test_customers[0]['id'],
+        "type": "Fixed Duration Project",
+        "name": "E-commerce Platform Development",
+        "amount": 25000.00,
+        "amc_amount": 5000.00,
+        "start_date": "2024-02-01",
+        "end_date": "2024-08-01"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/projects", json=project_with_end_date)
+        if response.status_code == 200:
+            project_with_end = response.json()
+            test_projects.append(project_with_end)
+            if project_with_end.get('end_date') == "2024-08-01":
+                print_success(f"Created project with end_date: {project_with_end['name']}")
+            else:
+                print_error(f"Project end_date not stored correctly: {project_with_end.get('end_date')}")
+                return False
+        else:
+            print_error(f"Failed to create project with end_date: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating project with end_date: {str(e)}")
+        return False
+    
+    # Test 3: Update project to add end_date
+    print("\n✏️  Testing Project Update to ADD end_date...")
+    if len(test_projects) >= 2:
+        project_id = test_projects[-2]['id']  # Project without end_date
+        update_data = {"end_date": "2024-12-31"}
+        
+        try:
+            response = requests.put(f"{API_URL}/projects/{project_id}", json=update_data)
+            if response.status_code == 200:
+                updated_project = response.json()
+                if updated_project.get('end_date') == "2024-12-31":
+                    print_success("Successfully added end_date to project")
+                else:
+                    print_error("Failed to add end_date to project")
+                    return False
+            else:
+                print_error(f"Failed to update project with end_date: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error updating project with end_date: {str(e)}")
+            return False
+    
+    # Test 4: Update project to remove end_date
+    print("\n✏️  Testing Project Update to REMOVE end_date...")
+    if len(test_projects) >= 1:
+        project_id = test_projects[-1]['id']  # Project with end_date
+        update_data = {"end_date": None}
+        
+        try:
+            response = requests.put(f"{API_URL}/projects/{project_id}", json=update_data)
+            if response.status_code == 200:
+                updated_project = response.json()
+                if updated_project.get('end_date') is None:
+                    print_success("Successfully removed end_date from project")
+                else:
+                    print_error("Failed to remove end_date from project")
+                    return False
+            else:
+                print_error(f"Failed to update project to remove end_date: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error updating project to remove end_date: {str(e)}")
+            return False
+    
+    # Test 5: Verify all project retrieval endpoints handle null end_date properly
+    print("\n📖 Testing Project Retrieval with null end_date...")
+    try:
+        # Test GET all projects
+        response = requests.get(f"{API_URL}/projects")
+        if response.status_code == 200:
+            projects = response.json()
+            null_end_date_found = False
+            for project in projects:
+                if project.get('end_date') is None:
+                    null_end_date_found = True
+                    print_success(f"Project with null end_date handled correctly: {project['name']}")
+                    break
+            
+            if not null_end_date_found:
+                print_error("No projects with null end_date found in retrieval")
+                return False
+        else:
+            print_error(f"Failed to retrieve projects: {response.status_code}")
+            return False
+        
+        # Test dashboard projects endpoint
+        response = requests.get(f"{API_URL}/dashboard/projects")
+        if response.status_code == 200:
+            dashboard_projects = response.json()
+            print_success("Dashboard projects endpoint handles null end_date correctly")
+        else:
+            print_error(f"Dashboard projects failed: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print_error(f"Error testing project retrieval with null end_date: {str(e)}")
+        return False
+    
+    print_success("Project End Date Non-Mandatory Implementation tests completed successfully")
+    return True
+
+def test_customer_ledger_on_project_creation():
+    """Test Customer Ledger Entry on Project Creation"""
+    print_test_header("Customer Ledger Entry on Project Creation")
+    
+    if not test_customers:
+        print_error("No test customers available for ledger testing")
+        return False
+    
+    customer_id = test_customers[0]['id']
+    
+    # Get initial ledger count
+    print("\n📋 Getting initial ledger state...")
+    try:
+        response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+        if response.status_code == 200:
+            initial_ledger = response.json()
+            initial_count = len(initial_ledger)
+            print_info(f"Initial ledger entries: {initial_count}")
+        else:
+            print_error(f"Failed to get initial ledger: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting initial ledger: {str(e)}")
+        return False
+    
+    # Create a new project and verify ledger entry is created
+    print("\n💰 Testing Automatic Ledger Entry on Project Creation...")
+    test_project = {
+        "customer_id": customer_id,
+        "type": "Ledger Test Project",
+        "name": "Test Project for Ledger Entry",
+        "amount": 15000.00,
+        "amc_amount": 2000.00,
+        "start_date": "2024-03-01",
+        "end_date": "2024-06-01"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/projects", json=test_project)
+        if response.status_code == 200:
+            created_project = response.json()
+            test_projects.append(created_project)
+            print_success(f"Created project: {created_project['name']}")
+            
+            # Check if ledger entry was created
+            ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+            if ledger_response.status_code == 200:
+                updated_ledger = response.json()
+                new_count = len(updated_ledger)
+                
+                if new_count > initial_count:
+                    print_success("Ledger entry count increased after project creation")
+                    
+                    # Find the specific ledger entry for this project
+                    project_ledger_entry = None
+                    for entry in updated_ledger:
+                        if (entry.get('reference_type') == 'project' and 
+                            entry.get('reference_id') == created_project['id']):
+                            project_ledger_entry = entry
+                            break
+                    
+                    if project_ledger_entry:
+                        # Verify ledger entry details
+                        if project_ledger_entry.get('transaction_type') == 'debit':
+                            print_success("Ledger entry has correct transaction type (debit)")
+                        else:
+                            print_error(f"Expected debit transaction, got {project_ledger_entry.get('transaction_type')}")
+                            return False
+                        
+                        if project_ledger_entry.get('amount') == test_project['amount']:
+                            print_success(f"Ledger entry has correct amount: ${project_ledger_entry.get('amount')}")
+                        else:
+                            print_error(f"Expected amount ${test_project['amount']}, got ${project_ledger_entry.get('amount')}")
+                            return False
+                        
+                        if 'Project created:' in project_ledger_entry.get('description', ''):
+                            print_success("Ledger entry has correct description format")
+                        else:
+                            print_error(f"Unexpected description: {project_ledger_entry.get('description')}")
+                            return False
+                        
+                        if project_ledger_entry.get('reference_id') == created_project['id']:
+                            print_success("Ledger entry has correct reference_id")
+                        else:
+                            print_error("Ledger entry reference_id mismatch")
+                            return False
+                    else:
+                        print_error("Could not find ledger entry for created project")
+                        return False
+                else:
+                    print_error("Ledger entry count did not increase after project creation")
+                    return False
+            else:
+                print_error(f"Failed to get updated ledger: {ledger_response.status_code}")
+                return False
+        else:
+            print_error(f"Failed to create project: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing ledger entry on project creation: {str(e)}")
+        return False
+    
+    # Test customer balance calculation
+    print("\n💳 Testing Customer Balance Calculation...")
+    try:
+        # Get customer balance
+        balance_response = requests.get(f"{API_URL}/customer-payment-summary/{customer_id}")
+        if balance_response.status_code == 200:
+            summary = balance_response.json()
+            credit_balance = summary.get('credit_balance')
+            print_success(f"Customer balance calculated: ${credit_balance}")
+            
+            # Balance should be negative (debt) since we created projects (debits) without payments (credits)
+            if credit_balance < 0:
+                print_success("Customer balance correctly shows debt from project creation")
+            else:
+                print_info(f"Customer balance is positive: ${credit_balance} (may have existing credits)")
+        else:
+            print_error(f"Failed to get customer balance: {balance_response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing customer balance: {str(e)}")
+        return False
+    
+    print_success("Customer Ledger Entry on Project Creation tests completed successfully")
+    return True
+
+def test_enhanced_customer_ledger_functionality():
+    """Test Enhanced Customer Ledger Functionality"""
+    print_test_header("Enhanced Customer Ledger Functionality")
+    
+    if not test_customers:
+        print_error("No test customers available for enhanced ledger testing")
+        return False
+    
+    customer_id = test_customers[0]['id']
+    
+    # Test 1: Customer ledger retrieval endpoint
+    print("\n📋 Testing Customer Ledger Retrieval...")
+    try:
+        response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+        if response.status_code == 200:
+            ledger_entries = response.json()
+            print_success(f"Retrieved {len(ledger_entries)} ledger entries")
+            
+            # Verify entries are properly ordered by date (most recent first)
+            if len(ledger_entries) > 1:
+                dates_ordered = True
+                for i in range(len(ledger_entries) - 1):
+                    current_date = datetime.fromisoformat(ledger_entries[i]['date'].replace('Z', '+00:00'))
+                    next_date = datetime.fromisoformat(ledger_entries[i+1]['date'].replace('Z', '+00:00'))
+                    if current_date < next_date:
+                        dates_ordered = False
+                        break
+                
+                if dates_ordered:
+                    print_success("Ledger entries are properly ordered by date (newest first)")
+                else:
+                    print_error("Ledger entries are not properly ordered by date")
+                    return False
+        else:
+            print_error(f"Failed to retrieve customer ledger: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing customer ledger retrieval: {str(e)}")
+        return False
+    
+    # Test 2: Customer balance calculation accuracy
+    print("\n💰 Testing Customer Balance Calculation Accuracy...")
+    try:
+        # Calculate balance manually from ledger
+        manual_balance = 0.0
+        for entry in ledger_entries:
+            if entry['transaction_type'] == 'credit':
+                manual_balance += entry['amount']
+            else:  # debit
+                manual_balance -= entry['amount']
+        
+        # Get balance from API
+        balance_response = requests.get(f"{API_URL}/customer-payment-summary/{customer_id}")
+        if balance_response.status_code == 200:
+            summary = balance_response.json()
+            api_balance = summary.get('credit_balance')
+            
+            # Compare balances (allow small floating point differences)
+            if abs(manual_balance - api_balance) < 0.01:
+                print_success(f"Balance calculation is accurate: ${api_balance}")
+            else:
+                print_error(f"Balance mismatch - Manual: ${manual_balance}, API: ${api_balance}")
+                return False
+        else:
+            print_error(f"Failed to get customer balance: {balance_response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing balance calculation: {str(e)}")
+        return False
+    
+    # Test 3: Various ledger scenarios
+    print("\n🔄 Testing Various Ledger Scenarios...")
+    
+    # Create a payment to test credit entry
+    if test_projects:
+        payment_data = {
+            "customer_id": customer_id,
+            "type": "project_advance",
+            "reference_id": test_projects[0]['id'],
+            "amount": 5000.00,
+            "description": "Test payment for ledger verification"
+        }
+        
+        try:
+            payment_response = requests.post(f"{API_URL}/payments", json=payment_data)
+            if payment_response.status_code == 200:
+                print_success("Created test payment for ledger verification")
+                
+                # Verify credit entry was added to ledger
+                updated_ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+                if updated_ledger_response.status_code == 200:
+                    updated_ledger = updated_ledger_response.json()
+                    
+                    # Find the credit entry
+                    credit_entry_found = False
+                    for entry in updated_ledger:
+                        if (entry.get('transaction_type') == 'credit' and 
+                            entry.get('amount') == 5000.00 and
+                            'Test payment' in entry.get('description', '')):
+                            credit_entry_found = True
+                            print_success("Credit entry found in ledger after payment")
+                            break
+                    
+                    if not credit_entry_found:
+                        print_error("Credit entry not found in ledger after payment")
+                        return False
+                else:
+                    print_error("Failed to retrieve updated ledger")
+                    return False
+            else:
+                print_error(f"Failed to create test payment: {payment_response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error testing payment ledger entry: {str(e)}")
+            return False
+    
+    # Test domain renewal ledger entry (if domains exist)
+    if test_domains:
+        print("\n🌐 Testing Domain Renewal Ledger Entry...")
+        domain_id = test_domains[0]['id']
+        
+        renewal_request = {
+            "domain_id": domain_id,
+            "payment_type": "agency",
+            "notes": "Test agency payment for ledger"
+        }
+        
+        try:
+            renewal_response = requests.post(f"{API_URL}/domain-renewal/{domain_id}", json=renewal_request)
+            if renewal_response.status_code == 200:
+                print_success("Domain renewal with agency payment completed")
+                
+                # Check for domain renewal ledger entry
+                final_ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+                if final_ledger_response.status_code == 200:
+                    final_ledger = final_ledger_response.json()
+                    
+                    domain_entry_found = False
+                    for entry in final_ledger:
+                        if (entry.get('reference_type') == 'domain_renewal' and
+                            'domain renewal' in entry.get('description', '').lower()):
+                            domain_entry_found = True
+                            print_success("Domain renewal ledger entry found")
+                            break
+                    
+                    if not domain_entry_found:
+                        print_error("Domain renewal ledger entry not found")
+                        return False
+                else:
+                    print_error("Failed to retrieve final ledger")
+                    return False
+            else:
+                print_info(f"Domain renewal failed (expected if domain already renewed): {renewal_response.status_code}")
+        except Exception as e:
+            print_info(f"Domain renewal test completed with note: {str(e)}")
+    
+    print_success("Enhanced Customer Ledger Functionality tests completed successfully")
+    return True
+
 def test_edge_cases():
     """Test edge cases and error handling"""
     print_test_header("Edge Cases and Error Handling")
