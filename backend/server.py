@@ -296,11 +296,21 @@ async def get_dashboard_projects():
     project_details = []
     
     for project in projects:
+        # Convert string dates back to date objects for projects
+        if isinstance(project.get('start_date'), str):
+            project['start_date'] = datetime.fromisoformat(project['start_date']).date()
+        if isinstance(project.get('end_date'), str):
+            project['end_date'] = datetime.fromisoformat(project['end_date']).date()
+            
         # Get customer details
         customer = await db.customers.find_one({"id": project["customer_id"]})
         
         # Get domains for this project
         domains = await db.domains.find({"project_id": project["id"]}).to_list(1000)
+        # Convert string dates back to date objects for domains
+        for domain in domains:
+            if isinstance(domain.get('validity_date'), str):
+                domain['validity_date'] = datetime.fromisoformat(domain['validity_date']).date()
         domain_objects = [DomainHosting(**domain) for domain in domains]
         
         if customer:
