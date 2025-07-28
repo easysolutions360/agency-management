@@ -1133,7 +1133,16 @@ def main():
         ("Project CRUD Operations", test_project_crud),
         ("Domain/Hosting CRUD Operations", test_domain_hosting_crud),
         ("Dashboard API", test_dashboard_api),
-        ("Expiring Domains Functionality", test_expiring_domains)
+        ("Expiring Domains Functionality", test_expiring_domains),
+        # Enhanced Payment System Tests
+        ("Enhanced Payment System with Project AMC Support", test_enhanced_payment_system),
+        ("Domain Renewal Payment System", test_domain_renewal_payment_system),
+        ("AMC Payment Processing with Auto-Renewal", test_amc_payment_processing),
+        ("Customer Payment Summary", test_customer_payment_summary),
+        ("Domains Due for Renewal", test_domains_due_renewal),
+        ("Customer Ledger", test_customer_ledger),
+        ("Payment Status", test_payment_status),
+        ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
     for test_name, test_func in tests:
