@@ -210,6 +210,30 @@ backend:
         agent: "testing"
         comment: "✅ PASSED: Dashboard API working correctly with comprehensive project data aggregation including customer details, domains, and AMC amounts. Fixed ProjectWithDetails model to include amc_amount field. Expiring domains detection working properly."
 
+  - task: "Project End Date Non-Mandatory Implementation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Made project end_date non-mandatory in models and API. Fixed date handling in all project endpoints to properly handle null end_date values. AMC will start 1 year after end_date when set."
+
+  - task: "Customer Ledger Entry on Project Creation"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added customer ledger entry creation when project is onboarded. Creates debit entry for project amount and updates customer balance calculation."
+
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
     implemented: true
