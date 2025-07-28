@@ -547,6 +547,371 @@ const App = () => {
     </div>
   );
 
+  const renderReports = () => (
+    <div className="space-y-6">
+      {/* Edit Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Edit {editingType}</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              {editingType === "customer" && (
+                <>
+                  <FormInput
+                    label="Name"
+                    value={editingItem.name}
+                    onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
+                  />
+                  <FormInput
+                    label="Phone"
+                    value={editingItem.phone}
+                    onChange={(e) => setEditingItem({...editingItem, phone: e.target.value})}
+                  />
+                  <FormInput
+                    label="Email"
+                    value={editingItem.email}
+                    onChange={(e) => setEditingItem({...editingItem, email: e.target.value})}
+                  />
+                  <FormInput
+                    label="Address"
+                    value={editingItem.address}
+                    onChange={(e) => setEditingItem({...editingItem, address: e.target.value})}
+                  />
+                </>
+              )}
+              {editingType === "project" && (
+                <>
+                  <FormInput
+                    label="Type"
+                    value={editingItem.type}
+                    onChange={(e) => setEditingItem({...editingItem, type: e.target.value})}
+                  />
+                  <FormInput
+                    label="Name"
+                    value={editingItem.name}
+                    onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
+                  />
+                  <FormInput
+                    label="Amount"
+                    type="number"
+                    value={editingItem.amount}
+                    onChange={(e) => setEditingItem({...editingItem, amount: e.target.value})}
+                  />
+                  <FormInput
+                    label="Start Date"
+                    type="date"
+                    value={editingItem.start_date}
+                    onChange={(e) => setEditingItem({...editingItem, start_date: e.target.value})}
+                  />
+                  <FormInput
+                    label="End Date"
+                    type="date"
+                    value={editingItem.end_date || ""}
+                    onChange={(e) => setEditingItem({...editingItem, end_date: e.target.value})}
+                    required={false}
+                  />
+                </>
+              )}
+              {editingType === "domain" && (
+                <>
+                  <FormInput
+                    label="Domain Name"
+                    value={editingItem.domain_name}
+                    onChange={(e) => setEditingItem({...editingItem, domain_name: e.target.value})}
+                  />
+                  <FormInput
+                    label="Hosting Provider"
+                    value={editingItem.hosting_provider}
+                    onChange={(e) => setEditingItem({...editingItem, hosting_provider: e.target.value})}
+                  />
+                  <FormInput
+                    label="Username"
+                    value={editingItem.username}
+                    onChange={(e) => setEditingItem({...editingItem, username: e.target.value})}
+                  />
+                  <FormInput
+                    label="Password"
+                    type="password"
+                    value={editingItem.password}
+                    onChange={(e) => setEditingItem({...editingItem, password: e.target.value})}
+                  />
+                  <FormInput
+                    label="Validity Date"
+                    type="date"
+                    value={editingItem.validity_date}
+                    onChange={(e) => setEditingItem({...editingItem, validity_date: e.target.value})}
+                  />
+                </>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditCancel}
+                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Customers Report */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Customers Report</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Email</th>
+                <th className="px-4 py-2 text-left">Phone</th>
+                <th className="px-4 py-2 text-left">Address</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customers.map((customer) => (
+                <tr key={customer.id} className="border-b">
+                  <td className="px-4 py-2 font-medium">{customer.name}</td>
+                  <td className="px-4 py-2">{customer.email}</td>
+                  <td className="px-4 py-2">{customer.phone}</td>
+                  <td className="px-4 py-2">{customer.address}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => {
+                        setEditingItem(customer);
+                        setEditingType("customer");
+                      }}
+                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCustomer(customer.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Projects Report */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Projects Report</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Project Name</th>
+                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Amount</th>
+                <th className="px-4 py-2 text-left">Start Date</th>
+                <th className="px-4 py-2 text-left">End Date</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project) => (
+                <tr key={project.id} className="border-b">
+                  <td className="px-4 py-2 font-medium">{project.name}</td>
+                  <td className="px-4 py-2">{project.type}</td>
+                  <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
+                  <td className="px-4 py-2">{new Date(project.start_date).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">
+                    {project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => {
+                        setEditingItem(project);
+                        setEditingType("project");
+                      }}
+                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProject(project.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Domains Report */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Domains/Hosting Report</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Domain Name</th>
+                <th className="px-4 py-2 text-left">Hosting Provider</th>
+                <th className="px-4 py-2 text-left">Username</th>
+                <th className="px-4 py-2 text-left">Validity Date</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {domains.map((domain) => (
+                <tr key={domain.id} className="border-b">
+                  <td className="px-4 py-2 font-medium">{domain.domain_name}</td>
+                  <td className="px-4 py-2">{domain.hosting_provider}</td>
+                  <td className="px-4 py-2">{domain.username}</td>
+                  <td className="px-4 py-2">{new Date(domain.validity_date).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => {
+                        setEditingItem(domain);
+                        setEditingType("domain");
+                      }}
+                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDomain(domain.id)}
+                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAMC = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">AMC (Annual Maintenance Contract) Tracker</h2>
+        <p className="text-gray-600 mb-6">
+          This section shows projects that are due for AMC renewal (1 year after project completion)
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-blue-800">Total AMC Due</h3>
+            <p className="text-3xl font-bold text-blue-600">{amcProjects.length}</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-red-800">Overdue AMC</h3>
+            <p className="text-3xl font-bold text-red-600">
+              {amcProjects.filter(p => p.is_overdue).length}
+            </p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-green-800">Upcoming AMC</h3>
+            <p className="text-3xl font-bold text-green-600">
+              {amcProjects.filter(p => !p.is_overdue).length}
+            </p>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Project</th>
+                <th className="px-4 py-2 text-left">Customer</th>
+                <th className="px-4 py-2 text-left">Project End Date</th>
+                <th className="px-4 py-2 text-left">AMC Due Date</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Contact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {amcProjects.map((amcProject, index) => (
+                <tr key={index} className="border-b">
+                  <td className="px-4 py-2">
+                    <div>
+                      <p className="font-medium">{amcProject.project_name}</p>
+                      <p className="text-sm text-gray-600">{amcProject.project_type}</p>
+                      <p className="text-sm text-gray-600">${amcProject.project_amount.toLocaleString()}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div>
+                      <p className="font-medium">{amcProject.customer_name}</p>
+                      <p className="text-sm text-gray-600">{amcProject.customer_email}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    {new Date(amcProject.project_end_date).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2">
+                    {new Date(amcProject.amc_due_date).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-1 rounded text-sm font-medium ${
+                      amcProject.is_overdue 
+                        ? "bg-red-100 text-red-800" 
+                        : amcProject.days_until_amc <= 7
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-green-100 text-green-800"
+                    }`}>
+                      {amcProject.is_overdue 
+                        ? `Overdue by ${Math.abs(amcProject.days_until_amc)} days`
+                        : amcProject.days_until_amc === 0
+                        ? "Due Today"
+                        : `Due in ${amcProject.days_until_amc} days`
+                      }
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex space-x-2">
+                      <a
+                        href={`tel:${amcProject.customer_phone}`}
+                        className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                      >
+                        Call
+                      </a>
+                      <a
+                        href={`mailto:${amcProject.customer_email}`}
+                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                      >
+                        Email
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {amcProjects.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>No AMC renewals due in the next 30 days</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
