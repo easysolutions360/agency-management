@@ -1266,6 +1266,72 @@ const App = () => {
                 </tbody>
               </table>
             )}
+
+            {reportsTab === "renewals" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Domain Name</th>
+                    <th className="px-4 py-2 text-left">Customer</th>
+                    <th className="px-4 py-2 text-left">Project</th>
+                    <th className="px-4 py-2 text-left">Validity Date</th>
+                    <th className="px-4 py-2 text-left">Days Until Expiry</th>
+                    <th className="px-4 py-2 text-left">Renewal Amount</th>
+                    <th className="px-4 py-2 text-left">Status</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((domain) => (
+                    <tr key={domain.domain_id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{domain.domain_name}</td>
+                      <td className="px-4 py-2">{domain.customer_name}</td>
+                      <td className="px-4 py-2">{domain.project_name}</td>
+                      <td className="px-4 py-2">{new Date(domain.validity_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          domain.is_expired 
+                            ? "bg-red-100 text-red-800"
+                            : domain.days_until_expiry <= 7
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}>
+                          {domain.is_expired ? "EXPIRED" : `${domain.days_until_expiry} days`}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">${(domain.renewal_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          domain.is_expired 
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}>
+                          {domain.is_expired ? "Needs Renewal" : "Due Soon"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleDomainRenewal(domain, 'client')}
+                            className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                            title="Client pays for renewal"
+                          >
+                            Client Pays
+                          </button>
+                          <button
+                            onClick={() => handleDomainRenewal(domain, 'agency')}
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                            title="Agency pays (add to customer debt)"
+                          >
+                            Agency Pays
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Empty State */}
