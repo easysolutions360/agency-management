@@ -288,15 +288,18 @@ frontend:
 
   - task: "Customer Payment Summary and Ledger Views"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added customer payments tab in reports with comprehensive payment summaries and ledger access"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Customer payment summary and ledger views are working perfectly. Customer payments tab shows comprehensive payment summaries with correct totals, outstanding amounts, and credit balances. View Ledger functionality works correctly and shows transaction entries. User's concern about 'nothing showing in customer ledger' is RESOLVED - ledger entries are being created and displayed properly."
 
   - task: "Customer Management UI"
     implemented: true
