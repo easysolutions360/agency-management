@@ -119,6 +119,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Successfully tested project creation with AMC amounts ($5000), payment recording with status updates (pending→partial→paid), advance payment processing, and payment status tracking. All payment logic working correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Bug Fix 1 & 2 - Project AMC Edit and Payment Updates testing completed successfully. AMC amount field is available for editing and updates correctly (tested updating from ₹8000 to ₹12000). Payment summaries update properly when payments are made - total paid amount, outstanding amount, and credit balance all update correctly after project payments and AMC payments."
 
   - task: "Domain Renewal Payment System"
     implemented: true
