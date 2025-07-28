@@ -316,6 +316,10 @@ async def get_expiring_domains():
         if project:
             customer = await db.customers.find_one({"id": project["customer_id"]})
             if customer:
+                from datetime import datetime as dt
+                validity_date = dt.fromisoformat(domain["validity_date"]).date()
+                days_remaining = (validity_date - datetime.now().date()).days
+                
                 expiring_domains.append({
                     "domain_name": domain["domain_name"],
                     "hosting_provider": domain["hosting_provider"],
@@ -323,7 +327,7 @@ async def get_expiring_domains():
                     "project_name": project["name"],
                     "customer_name": customer["name"],
                     "customer_email": customer["email"],
-                    "days_remaining": (domain["validity_date"] - datetime.now().date()).days
+                    "days_remaining": days_remaining
                 })
     
     return expiring_domains
