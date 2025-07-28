@@ -174,6 +174,12 @@ async def create_project(project: ProjectCreate):
 @api_router.get("/projects", response_model=List[Project])
 async def get_projects():
     projects = await db.projects.find().to_list(1000)
+    # Convert string dates back to date objects
+    for project in projects:
+        if isinstance(project.get('start_date'), str):
+            project['start_date'] = datetime.fromisoformat(project['start_date']).date()
+        if isinstance(project.get('end_date'), str):
+            project['end_date'] = datetime.fromisoformat(project['end_date']).date()
     return [Project(**project) for project in projects]
 
 @api_router.get("/projects/{project_id}", response_model=Project)
