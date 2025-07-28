@@ -1060,6 +1060,16 @@ const App = () => {
             >
               Domains ({domains.length})
             </button>
+            <button
+              onClick={() => handleReportsTabChange("renewals")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                reportsTab === "renewals"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Domain Renewals
+            </button>
           </div>
 
           {/* Table Content */}
