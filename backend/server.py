@@ -71,6 +71,7 @@ class ProjectUpdate(BaseModel):
     type: Optional[str] = None
     name: Optional[str] = None
     amount: Optional[float] = None
+    amc_amount: Optional[float] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
 
