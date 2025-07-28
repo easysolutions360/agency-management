@@ -1274,7 +1274,7 @@ const App = () => {
                     <tr key={project.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-2 font-medium">{project.name}</td>
                       <td className="px-4 py-2">{project.type}</td>
-                      <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
+                      <td className="px-4 py-2">₹{project.amount.toLocaleString()}</td>
                       <td className="px-4 py-2">${(project.paid_amount || 0).toLocaleString()}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
