@@ -210,6 +210,13 @@ const App = () => {
     // For now, we'll just set the selected customer
   };
 
+  const togglePasswordVisibility = (domainId) => {
+    setPasswordVisibility(prev => ({
+      ...prev,
+      [domainId]: !prev[domainId]
+    }));
+  };
+
   const fetchDomainsForRenewal = async () => {
     try {
       const response = await axios.get(`${API}/domains-due-renewal`);
