@@ -897,6 +897,8 @@ const App = () => {
       currentData = domains;
     } else if (reportsTab === "renewals") {
       currentData = domainsForRenewal;
+    } else if (reportsTab === "payments") {
+      currentData = customerPaymentSummaries;
     }
 
     // Apply search filter
