@@ -407,6 +407,7 @@ async def get_dashboard_projects():
                 type=project["type"],
                 name=project["name"],
                 amount=project["amount"],
+                amc_amount=project.get("amc_amount", 0.0),
                 start_date=project["start_date"],
                 end_date=project["end_date"],
                 domains=domain_objects,
