@@ -1476,8 +1476,8 @@ const App = () => {
                     <tr key={summary.customer_id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-2 font-medium">{summary.customer_name}</td>
                       <td className="px-4 py-2">{summary.total_projects}</td>
-                      <td className="px-4 py-2">${(summary.total_project_amount || 0).toLocaleString()}</td>
-                      <td className="px-4 py-2 text-green-600">${(summary.total_paid_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2">₹{(summary.total_project_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-green-600">₹{(summary.total_paid_amount || 0).toLocaleString()}</td>
                       <td className="px-4 py-2">
                         <span className={`font-medium ${
                           (summary.outstanding_amount || 0) > 0 
