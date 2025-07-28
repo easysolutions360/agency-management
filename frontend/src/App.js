@@ -1476,6 +1476,16 @@ const App = () => {
                       <td className="px-4 py-2">
                         <div className="flex space-x-2">
                           <button
+                            onClick={() => {
+                              setEditingItem(domain);
+                              setEditingType("domain");
+                            }}
+                            className="bg-purple-500 text-white px-2 py-1 rounded text-sm hover:bg-purple-600"
+                            title="Edit domain details and renewal price"
+                          >
+                            Edit
+                          </button>
+                          <button
                             onClick={() => handleDomainRenewal(domain, 'client')}
                             className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
                             title="Client pays for renewal"
