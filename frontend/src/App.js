@@ -127,12 +127,21 @@ const App = () => {
     }
   };
 
-  const fetchProjectDomains = async (projectId) => {
+  const fetchDomains = async () => {
     try {
-      const response = await axios.get(`${API}/domains/project/${projectId}`);
-      setProjectDomains(response.data);
+      const response = await axios.get(`${API}/domains`);
+      setDomains(response.data);
     } catch (error) {
-      console.error("Error fetching project domains:", error);
+      console.error("Error fetching domains:", error);
+    }
+  };
+
+  const fetchAmcProjects = async () => {
+    try {
+      const response = await axios.get(`${API}/dashboard/amc-projects`);
+      setAmcProjects(response.data);
+    } catch (error) {
+      console.error("Error fetching AMC projects:", error);
     }
   };
 
