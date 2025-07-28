@@ -105,53 +105,89 @@
 user_problem_statement: "Web development agency customer onboarding and project management system with enhanced payment tracking. System includes customer data, project details with AMC amounts, domain/hosting management, and comprehensive payment system with advance payments, domain renewal options, AMC payment processing, and customer ledger tracking."
 
 backend:
+  - task: "Enhanced Payment System with Project AMC Support"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added AMC amount field to Project model, enhanced payment processing logic, implemented advance payment status tracking (pending->partial->paid)"
+
+  - task: "Domain Renewal Payment System"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented dual payment options for domain renewal: client pays directly or agency pays and adds to customer debt ledger"
+
+  - task: "AMC Payment Processing with Auto-Renewal"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented AMC payment recording with automatic 1-year renewal and customer ledger integration"
+
+  - task: "Enhanced Customer Ledger and Payment Tracking"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added comprehensive payment status endpoints, customer payment summaries, and domains due for renewal tracking"
+
   - task: "Customer Management API"
     implemented: true
     working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented complete CRUD operations for customers with all required fields"
-  
-  - task: "Project Management API"
-    implemented: true
-    working: "NA"
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Implemented complete CRUD operations for projects with customer relationship"
+        comment: "Existing CRUD operations for customers - no changes needed"
   
   - task: "Domain/Hosting Management API"
     implemented: true
     working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented multiple domains per project with credentials and validity dates"
+        comment: "Updated to remove payment type from creation (handled in renewal process)"
   
   - task: "Dashboard API with Expiring Domains"
     implemented: true
     working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Implemented dashboard with project details and expiring domains alerts"
+        comment: "Existing dashboard functionality maintained"
 
 frontend:
   - task: "Customer Management UI"
