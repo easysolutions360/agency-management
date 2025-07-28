@@ -1134,6 +1134,16 @@ const App = () => {
             >
               Domain Renewals
             </button>
+            <button
+              onClick={() => handleReportsTabChange("payments")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                reportsTab === "payments"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Customer Payments
+            </button>
           </div>
 
           {/* Table Content */}
