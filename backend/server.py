@@ -278,8 +278,10 @@ async def get_projects():
     for project in projects:
         if isinstance(project.get('start_date'), str):
             project['start_date'] = datetime.fromisoformat(project['start_date']).date()
-        if isinstance(project.get('end_date'), str):
+        if isinstance(project.get('end_date'), str) and project.get('end_date'):
             project['end_date'] = datetime.fromisoformat(project['end_date']).date()
+        elif project.get('end_date') is None:
+            project['end_date'] = None
     return [Project(**project) for project in projects]
 
 @api_router.get("/projects/{project_id}", response_model=Project)
