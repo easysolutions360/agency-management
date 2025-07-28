@@ -1357,6 +1357,20 @@ const App = () => {
                       <td className="px-4 py-2 font-medium">{domain.domain_name}</td>
                       <td className="px-4 py-2">{domain.hosting_provider}</td>
                       <td className="px-4 py-2">{domain.username}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono">
+                            {passwordVisibility[domain.id] ? domain.password : '••••••••'}
+                          </span>
+                          <button
+                            onClick={() => togglePasswordVisibility(domain.id)}
+                            className="text-blue-500 hover:text-blue-700 text-sm"
+                            title={passwordVisibility[domain.id] ? "Hide password" : "Show password"}
+                          >
+                            {passwordVisibility[domain.id] ? '👁️‍🗨️' : '👁️'}
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-4 py-2">{new Date(domain.validity_date).toLocaleDateString()}</td>
                       <td className="px-4 py-2">₹{(domain.renewal_amount || 0).toLocaleString()}</td>
                       <td className="px-4 py-2">
