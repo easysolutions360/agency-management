@@ -294,11 +294,11 @@ frontend:
 
   - task: "Customer Payment Summary and Ledger Views"
     implemented: true
-    working: true
+    working: false
     file: "/app/frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -306,6 +306,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Customer payment summary and ledger views are working perfectly. Customer payments tab shows comprehensive payment summaries with correct totals, outstanding amounts, and credit balances. View Ledger functionality works correctly and shows transaction entries. User's concern about 'nothing showing in customer ledger' is RESOLVED - ledger entries are being created and displayed properly."
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED BUGS: 1) View ledger is not working properly - needs popup with pagination showing all transactions with amount, date, and remarks like wallet, 2) Currency symbol needs to be changed from $ to INR, 3) Password visibility feature needed in view table with show/hide icon, 4) Domain Renewal report for expiring domains not implemented/working"
 
   - task: "Customer Management UI"
     implemented: true
