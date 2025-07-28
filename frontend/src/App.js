@@ -280,11 +280,20 @@ const App = () => {
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/projects`, {
+      const projectData = {
         ...projectForm,
         amount: parseFloat(projectForm.amount),
         amc_amount: parseFloat(projectForm.amc_amount) || 0
-      });
+      };
+      
+      // Handle optional end_date - send null if empty, otherwise send the date
+      if (projectForm.end_date && projectForm.end_date.trim() !== "") {
+        projectData.end_date = projectForm.end_date;
+      } else {
+        projectData.end_date = null;
+      }
+      
+      await axios.post(`${API}/projects`, projectData);
       setProjectForm({
         customer_id: "",
         type: "",
