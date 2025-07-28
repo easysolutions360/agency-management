@@ -89,6 +89,7 @@ const App = () => {
     type: "",
     name: "",
     amount: "",
+    amc_amount: "",
     start_date: "",
     end_date: ""
   });
