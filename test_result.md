@@ -227,11 +227,11 @@ backend:
 
   - task: "Customer Ledger Entry on Project Creation"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -239,6 +239,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Successfully verified that when a project is created, a customer ledger entry is automatically created with correct details (debit transaction, correct amount, proper description, correct reference). Customer balance calculation is working correctly after project creation. Fixed test logic bug in ledger verification."
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED BUG: Project onboarding debt is not going into customer ledger and advance payment from client is not working completely. Need to investigate and fix the customer ledger debt creation and advance payment processing logic."
 
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
