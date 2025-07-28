@@ -1577,6 +1577,63 @@ const App = () => {
     );
   };
 
+  const renderCustomerLedgerTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Customer Ledger Management</h2>
+        <p className="text-gray-600 mb-6">
+          Select a customer to view their complete ledger with all transactions
+        </p>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left">Customer Name</th>
+                <th className="px-4 py-2 text-left">Email</th>
+                <th className="px-4 py-2 text-left">Phone</th>
+                <th className="px-4 py-2 text-left">Outstanding Amount</th>
+                <th className="px-4 py-2 text-left">Credit Balance</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customerPaymentSummaries.map((summary) => (
+                <tr key={summary.customer_id} className="border-b">
+                  <td className="px-4 py-2 font-medium">{summary.customer_name}</td>
+                  <td className="px-4 py-2">{customers.find(c => c.id === summary.customer_id)?.email || 'N/A'}</td>
+                  <td className="px-4 py-2">{customers.find(c => c.id === summary.customer_id)?.phone || 'N/A'}</td>
+                  <td className="px-4 py-2">
+                    <span className={`font-medium ${
+                      summary.outstanding_amount > 0 ? "text-red-600" : "text-gray-600"
+                    }`}>
+                      ₹{(summary.outstanding_amount || 0).toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={`font-medium ${
+                      summary.credit_balance > 0 ? "text-green-600" : "text-gray-600"
+                    }`}>
+                      ₹{(summary.credit_balance || 0).toLocaleString()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <button
+                      onClick={() => viewCustomerLedger(summary.customer_id, summary.customer_name)}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                    >
+                      View Complete Ledger
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderAMC = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
