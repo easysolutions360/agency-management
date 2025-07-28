@@ -536,40 +536,95 @@ async def get_customer_ledger(customer_id: str):
     return [CustomerLedger(**entry) for entry in ledger]
 
 @api_router.post("/domain-renewal/{domain_id}")
-async def renew_domain(domain_id: str, renewal_data: dict):
+async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
     domain = await db.domains.find_one({"id": domain_id})
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     
-    # Update domain validity
-    new_validity = datetime.fromisoformat(renewal_data["new_validity_date"]).date()
+    # Get project and customer info
+    project = await db.projects.find_one({"id": domain["project_id"]})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Calculate new validity date (extend by 1 year)
+    current_validity = datetime.fromisoformat(domain["validity_date"]).date()
+    new_validity = current_validity + timedelta(days=365)
+    
+    # Update domain
     await db.domains.update_one(
         {"id": domain_id},
         {"$set": {
             "validity_date": new_validity.isoformat(),
-            "renewal_status": "renewed"
+            "renewal_status": "renewed",
+            "payment_type": renewal_request.payment_type
         }}
     )
     
-    # If agency paid, create ledger entry
-    if renewal_data["payment_type"] == "agency":
-        project = await db.projects.find_one({"id": domain["project_id"]})
-        if project:
-            ledger_entry = CustomerLedger(
-                customer_id=project["customer_id"],
-                transaction_type="debit",
-                amount=renewal_data["amount"],
-                description=f"Domain renewal for {domain['domain_name']}",
-                reference_type="domain",
-                reference_id=domain_id
-            )
-            
-            customer_balance = await get_customer_balance(project["customer_id"])
-            ledger_entry.balance = customer_balance - renewal_data["amount"]
-            
-            await db.ledger.insert_one(ledger_entry.dict())
+    # Handle payment based on who pays
+    if renewal_request.payment_type == "agency":
+        # Agency pays - create debit entry in customer ledger
+        ledger_entry = CustomerLedger(
+            customer_id=project["customer_id"],
+            transaction_type="debit",
+            amount=domain["renewal_amount"],
+            description=f"Domain renewal for {domain['domain_name']} (Agency paid)",
+            reference_type="domain_renewal",
+            reference_id=domain_id
+        )
+        
+        # Calculate balance
+        customer_balance = await get_customer_balance(project["customer_id"])
+        ledger_entry.balance = customer_balance - domain["renewal_amount"]
+        
+        await db.ledger.insert_one(ledger_entry.dict())
+        
+        # Create a payment record for agency payment
+        payment_obj = Payment(
+            customer_id=project["customer_id"],
+            type="domain_renewal_agency",
+            reference_id=domain_id,
+            amount=domain["renewal_amount"],
+            description=f"Domain renewal for {domain['domain_name']} (Agency paid - awaiting client payment)",
+            status="pending"
+        )
+        await db.payments.insert_one(payment_obj.dict())
     
-    return {"message": "Domain renewed successfully"}
+    return {"message": "Domain renewed successfully", "new_validity_date": new_validity.isoformat()}
+
+@api_router.post("/domain-renewal-payment/{domain_id}")
+async def record_domain_renewal_payment(domain_id: str, payment_data: dict):
+    """Record payment received from client for agency-paid domain renewal"""
+    domain = await db.domains.find_one({"id": domain_id})
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    
+    project = await db.projects.find_one({"id": domain["project_id"]})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Create credit entry in customer ledger
+    ledger_entry = CustomerLedger(
+        customer_id=project["customer_id"],
+        transaction_type="credit",
+        amount=payment_data["amount"],
+        description=f"Payment received for domain renewal: {domain['domain_name']}",
+        reference_type="domain_renewal_payment",
+        reference_id=domain_id
+    )
+    
+    # Calculate balance
+    customer_balance = await get_customer_balance(project["customer_id"])
+    ledger_entry.balance = customer_balance + payment_data["amount"]
+    
+    await db.ledger.insert_one(ledger_entry.dict())
+    
+    # Update the pending payment status
+    await db.payments.update_one(
+        {"reference_id": domain_id, "type": "domain_renewal_agency"},
+        {"$set": {"status": "completed"}}
+    )
+    
+    return {"message": "Domain renewal payment recorded successfully"}
 
 async def get_customer_balance(customer_id: str):
     """Calculate customer balance from ledger"""
