@@ -482,6 +482,7 @@ const App = () => {
             type="date"
             value={projectForm.end_date}
             onChange={(e) => setProjectForm({ ...projectForm, end_date: e.target.value })}
+            required={false}
           />
         </div>
         <button
