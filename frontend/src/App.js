@@ -101,8 +101,7 @@ const App = () => {
     username: "",
     password: "",
     validity_date: "",
-    renewal_amount: "",
-    payment_type: "client"
+    renewal_amount: ""
   });
 
   const [paymentForm, setPaymentForm] = useState({
