@@ -246,9 +246,29 @@ async def create_project(project: ProjectCreate):
     # Convert date objects to strings for MongoDB storage
     project_data = project_obj.dict()
     project_data['start_date'] = project_data['start_date'].isoformat()
-    project_data['end_date'] = project_data['end_date'].isoformat()
+    if project_data['end_date']:
+        project_data['end_date'] = project_data['end_date'].isoformat()
+    else:
+        project_data['end_date'] = None
     
     await db.projects.insert_one(project_data)
+    
+    # Create customer ledger entry for project creation
+    ledger_entry = CustomerLedger(
+        customer_id=project.customer_id,
+        transaction_type="debit",
+        amount=project.amount,
+        description=f"Project created: {project.name}",
+        reference_type="project",
+        reference_id=project_obj.id
+    )
+    
+    # Calculate balance
+    customer_balance = await get_customer_balance(project.customer_id)
+    ledger_entry.balance = customer_balance - project.amount
+    
+    await db.ledger.insert_one(ledger_entry.dict())
+    
     return project_obj
 
 @api_router.get("/projects", response_model=List[Project])
