@@ -211,6 +211,35 @@ const App = () => {
     }
   };
 
+  const fetchCustomerPaymentSummaries = async () => {
+    try {
+      // For now, we'll create summaries from existing data
+      const summaries = await Promise.all(
+        customers.map(async (customer) => {
+          try {
+            const response = await axios.get(`${API}/customer-payment-summary/${customer.id}`);
+            return response.data;
+          } catch (error) {
+            console.error(`Error fetching payment summary for ${customer.name}:`, error);
+            return {
+              customer_id: customer.id,
+              customer_name: customer.name,
+              total_projects: 0,
+              total_project_amount: 0,
+              total_paid_amount: 0,
+              outstanding_amount: 0,
+              credit_balance: 0,
+              recent_payments: []
+            };
+          }
+        })
+      );
+      setCustomerPaymentSummaries(summaries);
+    } catch (error) {
+      console.error("Error fetching customer payment summaries:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCustomers();
     fetchProjects();
