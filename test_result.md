@@ -243,15 +243,18 @@ backend:
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added AMC amount field to project creation form, updated form submission to handle AMC amounts"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Successfully tested project creation with and without end_date. Projects are created successfully regardless of end_date being empty or filled. End date field is properly optional and displays 'Not set' when null. Project form handles AMC amounts correctly. Customer ledger entries are automatically created when projects are added."
 
   - task: "Domain Renewal Management with Payment Options"
     implemented: true
