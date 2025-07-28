@@ -159,6 +159,8 @@ const App = () => {
     fetchProjects();
     fetchDashboardProjects();
     fetchExpiringDomains();
+    fetchDomains();
+    fetchAmcProjects();
   }, []);
 
   const handleCustomerSubmit = async (e) => {
