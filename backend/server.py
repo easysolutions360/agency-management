@@ -253,19 +253,19 @@ async def create_project(project: ProjectCreate):
     
     await db.projects.insert_one(project_data)
     
-    # Create customer ledger entry for project creation
+    # Create customer ledger entry for project creation (DEBIT - customer owes money)
+    # Get current balance before adding this transaction
+    current_balance = await get_customer_balance(project.customer_id)
+    
     ledger_entry = CustomerLedger(
         customer_id=project.customer_id,
         transaction_type="debit",
         amount=project.amount,
         description=f"Project created: {project.name}",
         reference_type="project",
-        reference_id=project_obj.id
+        reference_id=project_obj.id,
+        balance=current_balance - project.amount  # New balance after this debit
     )
-    
-    # Calculate balance
-    customer_balance = await get_customer_balance(project.customer_id)
-    ledger_entry.balance = customer_balance - project.amount
     
     await db.ledger.insert_one(ledger_entry.dict())
     
