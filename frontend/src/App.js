@@ -71,6 +71,7 @@ const App = () => {
   const [paymentModal, setPaymentModal] = useState(false);
   const [renewalModal, setRenewalModal] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
+  const [passwordVisibility, setPasswordVisibility] = useState({}); // For toggling password visibility
   
   // Pagination states
   const [reportsTab, setReportsTab] = useState("customers");
