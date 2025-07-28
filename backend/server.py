@@ -613,19 +613,19 @@ async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
     
     # Handle payment based on who pays
     if renewal_request.payment_type == "agency":
-        # Agency pays - create debit entry in customer ledger
+        # Agency pays - create debit entry in customer ledger (customer owes money)
+        # Get current balance before adding this transaction
+        current_balance = await get_customer_balance(project["customer_id"])
+        
         ledger_entry = CustomerLedger(
             customer_id=project["customer_id"],
             transaction_type="debit",
             amount=domain["renewal_amount"],
             description=f"Domain renewal for {domain['domain_name']} (Agency paid)",
             reference_type="domain_renewal",
-            reference_id=domain_id
+            reference_id=domain_id,
+            balance=current_balance - domain["renewal_amount"]  # New balance after this debit
         )
-        
-        # Calculate balance
-        customer_balance = await get_customer_balance(project["customer_id"])
-        ledger_entry.balance = customer_balance - domain["renewal_amount"]
         
         await db.ledger.insert_one(ledger_entry.dict())
         
