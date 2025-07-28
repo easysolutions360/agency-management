@@ -552,19 +552,19 @@ async def create_payment(payment: PaymentCreate):
     payment_obj = Payment(**payment_dict)
     await db.payments.insert_one(payment_obj.dict())
     
-    # Create ledger entry
+    # Create ledger entry (CREDIT - customer pays money)
+    # Get current balance before adding this transaction
+    current_balance = await get_customer_balance(payment.customer_id)
+    
     ledger_entry = CustomerLedger(
         customer_id=payment.customer_id,
         transaction_type="credit",
         amount=payment.amount,
         description=payment.description,
         reference_type=payment.type,
-        reference_id=payment.reference_id
+        reference_id=payment.reference_id,
+        balance=current_balance + payment.amount  # New balance after this credit
     )
-    
-    # Calculate balance
-    customer_balance = await get_customer_balance(payment.customer_id)
-    ledger_entry.balance = customer_balance + payment.amount
     
     await db.ledger.insert_one(ledger_entry.dict())
     
