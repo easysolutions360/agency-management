@@ -1495,7 +1495,7 @@ const App = () => {
                             ? "text-green-600"
                             : "text-gray-600"
                         }`}>
-                          ${(summary.credit_balance || 0).toLocaleString()}
+                          ₹{(summary.credit_balance || 0).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-4 py-2">
