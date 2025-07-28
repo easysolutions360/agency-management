@@ -349,6 +349,10 @@ async def update_domain_hosting(domain_id: str, domain_update: DomainHostingUpda
     if not update_dict:
         raise HTTPException(status_code=400, detail="No fields to update")
     
+    # Convert date objects to strings for MongoDB storage if needed
+    if 'validity_date' in update_dict and isinstance(update_dict['validity_date'], date):
+        update_dict['validity_date'] = update_dict['validity_date'].isoformat()
+    
     result = await db.domains.update_one(
         {"id": domain_id}, 
         {"$set": update_dict}
@@ -357,6 +361,9 @@ async def update_domain_hosting(domain_id: str, domain_update: DomainHostingUpda
         raise HTTPException(status_code=404, detail="Domain not found")
     
     updated_domain = await db.domains.find_one({"id": domain_id})
+    # Convert string dates back to date objects
+    if isinstance(updated_domain.get('validity_date'), str):
+        updated_domain['validity_date'] = datetime.fromisoformat(updated_domain['validity_date']).date()
     return DomainHosting(**updated_domain)
 
 @api_router.delete("/domains/{domain_id}")
