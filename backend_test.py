@@ -520,6 +520,563 @@ def test_expiring_domains():
     print_success("Expiring domains functionality completed successfully")
     return True
 
+def test_enhanced_payment_system():
+    """Test Enhanced Payment System with Project AMC Support"""
+    print_test_header("Enhanced Payment System with Project AMC Support")
+    
+    if not test_customers or not test_projects:
+        print_error("No test data available for payment testing")
+        return False
+    
+    # Test 1: Create project with AMC amount
+    print("\n💰 Testing Project Creation with AMC Amount...")
+    project_with_amc = {
+        "customer_id": test_customers[0]['id'],
+        "type": "Website with AMC",
+        "name": "Corporate Website with Annual Maintenance",
+        "amount": 20000.00,
+        "amc_amount": 5000.00,
+        "start_date": "2024-01-01",
+        "end_date": "2024-03-01"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/projects", json=project_with_amc)
+        if response.status_code == 200:
+            amc_project = response.json()
+            test_projects.append(amc_project)
+            if amc_project.get('amc_amount') == 5000.00:
+                print_success(f"Created project with AMC: {amc_project['name']} (AMC: ${amc_project['amc_amount']})")
+            else:
+                print_error("AMC amount not stored correctly")
+                return False
+        else:
+            print_error(f"Failed to create project with AMC: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating project with AMC: {str(e)}")
+        return False
+    
+    # Test 2: Record advance payment and verify status updates
+    print("\n💳 Testing Payment Recording and Status Updates...")
+    project_id = test_projects[0]['id']
+    
+    # Record partial payment
+    payment_data = {
+        "customer_id": test_customers[0]['id'],
+        "type": "project_advance",
+        "reference_id": project_id,
+        "amount": 8000.00,
+        "description": "Advance payment for project development"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/payments", json=payment_data)
+        if response.status_code == 200:
+            payment = response.json()
+            print_success(f"Recorded payment: ${payment['amount']} for project")
+            
+            # Check if project payment status updated
+            project_response = requests.get(f"{API_URL}/projects/{project_id}")
+            if project_response.status_code == 200:
+                updated_project = project_response.json()
+                if updated_project.get('payment_status') == 'partial':
+                    print_success("Project payment status correctly updated to 'partial'")
+                else:
+                    print_error(f"Expected 'partial' status, got '{updated_project.get('payment_status')}'")
+                    return False
+            else:
+                print_error("Failed to retrieve updated project")
+                return False
+        else:
+            print_error(f"Failed to record payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error recording payment: {str(e)}")
+        return False
+    
+    # Test 3: Complete payment and verify 'paid' status
+    print("\n💯 Testing Complete Payment...")
+    remaining_payment = {
+        "customer_id": test_customers[0]['id'],
+        "type": "project_advance",
+        "reference_id": project_id,
+        "amount": 10000.00,  # This should complete the payment (8000 + 10000 = 18000 total)
+        "description": "Final payment for project completion"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/payments", json=remaining_payment)
+        if response.status_code == 200:
+            print_success("Recorded final payment")
+            
+            # Check if project payment status updated to 'paid'
+            project_response = requests.get(f"{API_URL}/projects/{project_id}")
+            if project_response.status_code == 200:
+                updated_project = project_response.json()
+                if updated_project.get('payment_status') == 'paid':
+                    print_success("Project payment status correctly updated to 'paid'")
+                else:
+                    print_error(f"Expected 'paid' status, got '{updated_project.get('payment_status')}'")
+                    return False
+            else:
+                print_error("Failed to retrieve updated project")
+                return False
+        else:
+            print_error(f"Failed to record final payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error recording final payment: {str(e)}")
+        return False
+    
+    print_success("Enhanced Payment System tests completed successfully")
+    return True
+
+def test_domain_renewal_payment_system():
+    """Test Domain Renewal Payment System with dual payment options"""
+    print_test_header("Domain Renewal Payment System")
+    
+    if not test_domains:
+        print_error("No test domains available for renewal testing")
+        return False
+    
+    # Test 1: Client pays for domain renewal
+    print("\n🌐 Testing Client-Paid Domain Renewal...")
+    domain_id = test_domains[0]['id']
+    
+    client_renewal = {
+        "domain_id": domain_id,
+        "payment_type": "client",
+        "notes": "Client will pay directly for renewal"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/{domain_id}", json=client_renewal)
+        if response.status_code == 200:
+            result = response.json()
+            print_success(f"Domain renewed with client payment: {result.get('message')}")
+            
+            # Verify domain was updated
+            domain_response = requests.get(f"{API_URL}/domains/{domain_id}")
+            if domain_response.status_code == 200:
+                updated_domain = domain_response.json()
+                if updated_domain.get('payment_type') == 'client':
+                    print_success("Domain payment type correctly set to 'client'")
+                else:
+                    print_error("Domain payment type not updated correctly")
+                    return False
+            else:
+                print_error("Failed to retrieve updated domain")
+                return False
+        else:
+            print_error(f"Failed to renew domain with client payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing client-paid renewal: {str(e)}")
+        return False
+    
+    # Test 2: Agency pays for domain renewal (creates customer debt)
+    print("\n🏢 Testing Agency-Paid Domain Renewal...")
+    if len(test_domains) > 1:
+        domain_id = test_domains[1]['id']
+        
+        agency_renewal = {
+            "domain_id": domain_id,
+            "payment_type": "agency",
+            "notes": "Agency pays upfront, customer owes amount"
+        }
+        
+        try:
+            response = requests.post(f"{API_URL}/domain-renewal/{domain_id}", json=agency_renewal)
+            if response.status_code == 200:
+                result = response.json()
+                print_success(f"Domain renewed with agency payment: {result.get('message')}")
+                
+                # Verify domain was updated
+                domain_response = requests.get(f"{API_URL}/domains/{domain_id}")
+                if domain_response.status_code == 200:
+                    updated_domain = domain_response.json()
+                    if updated_domain.get('payment_type') == 'agency':
+                        print_success("Domain payment type correctly set to 'agency'")
+                    else:
+                        print_error("Domain payment type not updated correctly")
+                        return False
+                else:
+                    print_error("Failed to retrieve updated domain")
+                    return False
+                
+                # Check if customer ledger entry was created (debt)
+                customer_id = test_customers[0]['id']  # Assuming domain belongs to first customer
+                ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+                if ledger_response.status_code == 200:
+                    ledger_entries = ledger_response.json()
+                    debt_entry_found = False
+                    for entry in ledger_entries:
+                        if entry.get('transaction_type') == 'debit' and 'domain renewal' in entry.get('description', '').lower():
+                            debt_entry_found = True
+                            print_success("Customer debt entry created for agency-paid renewal")
+                            break
+                    
+                    if not debt_entry_found:
+                        print_error("Customer debt entry not found in ledger")
+                        return False
+                else:
+                    print_error("Failed to retrieve customer ledger")
+                    return False
+            else:
+                print_error(f"Failed to renew domain with agency payment: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error testing agency-paid renewal: {str(e)}")
+            return False
+    
+    print_success("Domain Renewal Payment System tests completed successfully")
+    return True
+
+def test_amc_payment_processing():
+    """Test AMC Payment Processing with Auto-Renewal"""
+    print_test_header("AMC Payment Processing with Auto-Renewal")
+    
+    if not test_projects:
+        print_error("No test projects available for AMC testing")
+        return False
+    
+    # Find project with AMC amount
+    amc_project = None
+    for project in test_projects:
+        if project.get('amc_amount', 0) > 0:
+            amc_project = project
+            break
+    
+    if not amc_project:
+        print_error("No project with AMC amount found for testing")
+        return False
+    
+    # Test AMC payment recording
+    print("\n🔄 Testing AMC Payment Recording...")
+    project_id = amc_project['id']
+    
+    amc_payment_data = {
+        "project_id": project_id,
+        "amount": amc_project['amc_amount'],
+        "payment_date": datetime.utcnow().isoformat()
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/amc-payment/{project_id}", json=amc_payment_data)
+        if response.status_code == 200:
+            result = response.json()
+            print_success(f"AMC payment recorded: {result.get('message')}")
+            
+            # Verify payment was recorded in payments table
+            customer_id = amc_project['customer_id']
+            payments_response = requests.get(f"{API_URL}/payments/customer/{customer_id}")
+            if payments_response.status_code == 200:
+                payments = payments_response.json()
+                amc_payment_found = False
+                for payment in payments:
+                    if payment.get('type') == 'amc_payment' and payment.get('reference_id') == project_id:
+                        amc_payment_found = True
+                        print_success("AMC payment found in payments table")
+                        break
+                
+                if not amc_payment_found:
+                    print_error("AMC payment not found in payments table")
+                    return False
+            else:
+                print_error("Failed to retrieve customer payments")
+                return False
+            
+            # Verify ledger entry was created
+            ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+            if ledger_response.status_code == 200:
+                ledger_entries = ledger_response.json()
+                amc_ledger_found = False
+                for entry in ledger_entries:
+                    if entry.get('reference_type') == 'amc' and entry.get('reference_id') == project_id:
+                        amc_ledger_found = True
+                        print_success("AMC payment ledger entry created")
+                        break
+                
+                if not amc_ledger_found:
+                    print_error("AMC payment ledger entry not found")
+                    return False
+            else:
+                print_error("Failed to retrieve customer ledger")
+                return False
+        else:
+            print_error(f"Failed to record AMC payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error recording AMC payment: {str(e)}")
+        return False
+    
+    print_success("AMC Payment Processing tests completed successfully")
+    return True
+
+def test_customer_payment_summary():
+    """Test Customer Payment Summary endpoint"""
+    print_test_header("Customer Payment Summary")
+    
+    if not test_customers:
+        print_error("No test customers available for payment summary testing")
+        return False
+    
+    customer_id = test_customers[0]['id']
+    
+    print("\n📊 Testing Customer Payment Summary...")
+    try:
+        response = requests.get(f"{API_URL}/customer-payment-summary/{customer_id}")
+        if response.status_code == 200:
+            summary = response.json()
+            
+            # Verify required fields
+            required_fields = ['customer_id', 'customer_name', 'total_projects', 
+                             'total_project_amount', 'total_paid_amount', 'outstanding_amount',
+                             'credit_balance', 'recent_payments']
+            
+            missing_fields = [field for field in required_fields if field not in summary]
+            if missing_fields:
+                print_error(f"Payment summary missing fields: {missing_fields}")
+                return False
+            
+            print_success(f"Customer: {summary['customer_name']}")
+            print_info(f"Total Projects: {summary['total_projects']}")
+            print_info(f"Total Project Amount: ${summary['total_project_amount']}")
+            print_info(f"Total Paid Amount: ${summary['total_paid_amount']}")
+            print_info(f"Outstanding Amount: ${summary['outstanding_amount']}")
+            print_info(f"Credit Balance: ${summary['credit_balance']}")
+            print_info(f"Recent Payments: {len(summary['recent_payments'])}")
+            
+            # Verify recent payments structure
+            for payment in summary['recent_payments']:
+                payment_fields = ['date', 'amount', 'type', 'description']
+                missing_payment_fields = [field for field in payment_fields if field not in payment]
+                if missing_payment_fields:
+                    print_error(f"Recent payment missing fields: {missing_payment_fields}")
+                    return False
+            
+            print_success("Customer payment summary structure is correct")
+        else:
+            print_error(f"Failed to get customer payment summary: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting customer payment summary: {str(e)}")
+        return False
+    
+    print_success("Customer Payment Summary tests completed successfully")
+    return True
+
+def test_domains_due_renewal():
+    """Test Domains Due for Renewal endpoint"""
+    print_test_header("Domains Due for Renewal")
+    
+    print("\n📅 Testing Domains Due for Renewal...")
+    try:
+        response = requests.get(f"{API_URL}/domains-due-renewal")
+        if response.status_code == 200:
+            due_domains = response.json()
+            print_success(f"Retrieved {len(due_domains)} domains due for renewal")
+            
+            # Verify data structure
+            for domain in due_domains:
+                required_fields = ['domain_id', 'domain_name', 'hosting_provider', 
+                                 'validity_date', 'days_until_expiry', 'renewal_amount',
+                                 'project_name', 'customer_name', 'customer_id', 'is_expired']
+                
+                missing_fields = [field for field in required_fields if field not in domain]
+                if missing_fields:
+                    print_error(f"Due domain missing fields: {missing_fields}")
+                    return False
+                
+                print_info(f"Domain: {domain['domain_name']} | Days until expiry: {domain['days_until_expiry']} | Customer: {domain['customer_name']}")
+            
+            print_success("Domains due for renewal data structure is correct")
+        else:
+            print_error(f"Failed to get domains due for renewal: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting domains due for renewal: {str(e)}")
+        return False
+    
+    print_success("Domains Due for Renewal tests completed successfully")
+    return True
+
+def test_customer_ledger():
+    """Test Customer Ledger functionality"""
+    print_test_header("Customer Ledger")
+    
+    if not test_customers:
+        print_error("No test customers available for ledger testing")
+        return False
+    
+    customer_id = test_customers[0]['id']
+    
+    print("\n📋 Testing Customer Ledger...")
+    try:
+        response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
+        if response.status_code == 200:
+            ledger_entries = response.json()
+            print_success(f"Retrieved {len(ledger_entries)} ledger entries")
+            
+            # Verify data structure and transaction types
+            transaction_types_found = set()
+            for entry in ledger_entries:
+                required_fields = ['id', 'customer_id', 'transaction_type', 'amount',
+                                 'description', 'reference_type', 'reference_id', 'date', 'balance']
+                
+                missing_fields = [field for field in required_fields if field not in entry]
+                if missing_fields:
+                    print_error(f"Ledger entry missing fields: {missing_fields}")
+                    return False
+                
+                transaction_types_found.add(entry['transaction_type'])
+                print_info(f"{entry['transaction_type'].upper()}: ${entry['amount']} - {entry['description']} (Balance: ${entry['balance']})")
+            
+            # Check if we have both credit and debit entries
+            if 'credit' in transaction_types_found:
+                print_success("Credit transactions found in ledger")
+            if 'debit' in transaction_types_found:
+                print_success("Debit transactions found in ledger")
+            
+            print_success("Customer ledger data structure is correct")
+        else:
+            print_error(f"Failed to get customer ledger: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting customer ledger: {str(e)}")
+        return False
+    
+    print_success("Customer Ledger tests completed successfully")
+    return True
+
+def test_payment_status():
+    """Test Payment Status endpoint"""
+    print_test_header("Payment Status")
+    
+    if not test_projects:
+        print_error("No test projects available for payment status testing")
+        return False
+    
+    project_id = test_projects[0]['id']
+    
+    print("\n💳 Testing Payment Status...")
+    try:
+        response = requests.get(f"{API_URL}/payment-status/{project_id}")
+        if response.status_code == 200:
+            status = response.json()
+            
+            # Verify required fields
+            required_fields = ['project_id', 'total_amount', 'paid_amount', 'remaining_amount',
+                             'payment_status', 'amc_amount', 'amc_due_date', 'amc_paid']
+            
+            missing_fields = [field for field in required_fields if field not in status]
+            if missing_fields:
+                print_error(f"Payment status missing fields: {missing_fields}")
+                return False
+            
+            print_success(f"Project ID: {status['project_id']}")
+            print_info(f"Total Amount: ${status['total_amount']}")
+            print_info(f"Paid Amount: ${status['paid_amount']}")
+            print_info(f"Remaining Amount: ${status['remaining_amount']}")
+            print_info(f"Payment Status: {status['payment_status']}")
+            print_info(f"AMC Amount: ${status['amc_amount']}")
+            print_info(f"AMC Due Date: {status['amc_due_date']}")
+            print_info(f"AMC Paid: {status['amc_paid']}")
+            
+            print_success("Payment status data structure is correct")
+        else:
+            print_error(f"Failed to get payment status: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting payment status: {str(e)}")
+        return False
+    
+    print_success("Payment Status tests completed successfully")
+    return True
+
+def test_edge_cases():
+    """Test edge cases and error handling"""
+    print_test_header("Edge Cases and Error Handling")
+    
+    # Test 1: Invalid payment amounts
+    print("\n❌ Testing Invalid Payment Amounts...")
+    if test_customers and test_projects:
+        invalid_payment = {
+            "customer_id": test_customers[0]['id'],
+            "type": "project_advance",
+            "reference_id": test_projects[0]['id'],
+            "amount": -1000.00,  # Negative amount
+            "description": "Invalid negative payment"
+        }
+        
+        try:
+            response = requests.post(f"{API_URL}/payments", json=invalid_payment)
+            # Should either reject or handle gracefully
+            print_info(f"Negative payment response: {response.status_code}")
+        except Exception as e:
+            print_info(f"Negative payment error handled: {str(e)}")
+    
+    # Test 2: Payments for non-existent projects
+    print("\n❌ Testing Payments for Non-existent Projects...")
+    if test_customers:
+        nonexistent_payment = {
+            "customer_id": test_customers[0]['id'],
+            "type": "project_advance",
+            "reference_id": "non-existent-project-id",
+            "amount": 1000.00,
+            "description": "Payment for non-existent project"
+        }
+        
+        try:
+            response = requests.post(f"{API_URL}/payments", json=nonexistent_payment)
+            print_info(f"Non-existent project payment response: {response.status_code}")
+        except Exception as e:
+            print_info(f"Non-existent project payment error handled: {str(e)}")
+    
+    # Test 3: AMC payments for projects without AMC amounts
+    print("\n❌ Testing AMC Payments for Projects without AMC...")
+    if test_projects:
+        # Find a project without AMC amount
+        non_amc_project = None
+        for project in test_projects:
+            if project.get('amc_amount', 0) == 0:
+                non_amc_project = project
+                break
+        
+        if non_amc_project:
+            amc_payment_data = {
+                "project_id": non_amc_project['id'],
+                "amount": 1000.00,
+                "payment_date": datetime.utcnow().isoformat()
+            }
+            
+            try:
+                response = requests.post(f"{API_URL}/amc-payment/{non_amc_project['id']}", json=amc_payment_data)
+                print_info(f"AMC payment for non-AMC project response: {response.status_code}")
+            except Exception as e:
+                print_info(f"AMC payment for non-AMC project error handled: {str(e)}")
+    
+    # Test 4: Domain renewal for non-existent domain
+    print("\n❌ Testing Domain Renewal for Non-existent Domain...")
+    renewal_request = {
+        "domain_id": "non-existent-domain-id",
+        "payment_type": "client",
+        "notes": "Test renewal for non-existent domain"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/non-existent-domain-id", json=renewal_request)
+        if response.status_code == 404:
+            print_success("Correctly returned 404 for non-existent domain renewal")
+        else:
+            print_info(f"Non-existent domain renewal response: {response.status_code}")
+    except Exception as e:
+        print_info(f"Non-existent domain renewal error handled: {str(e)}")
+    
+    print_success("Edge Cases and Error Handling tests completed")
+    return True
+
 def test_cleanup():
     """Clean up test data (optional - for clean testing environment)"""
     print_test_header("Test Data Cleanup")
