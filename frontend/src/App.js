@@ -577,6 +577,18 @@ const App = () => {
             isActive={activeTab === "domains"}
             onClick={() => setActiveTab("domains")}
           />
+          <TabButton
+            tab="reports"
+            label="Reports"
+            isActive={activeTab === "reports"}
+            onClick={() => setActiveTab("reports")}
+          />
+          <TabButton
+            tab="amc"
+            label="AMC Tracker"
+            isActive={activeTab === "amc"}
+            onClick={() => setActiveTab("amc")}
+          />
         </div>
 
         {activeTab === "dashboard" && renderDashboard()}
