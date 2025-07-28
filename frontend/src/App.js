@@ -63,6 +63,12 @@ const App = () => {
   const [amcProjects, setAmcProjects] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  const [customerBalances, setCustomerBalances] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customerLedger, setCustomerLedger] = useState([]);
+  const [paymentModal, setPaymentModal] = useState(false);
+  const [renewalModal, setRenewalModal] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState(null);
   
   // Pagination states
   const [reportsTab, setReportsTab] = useState("customers");
