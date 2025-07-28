@@ -1629,7 +1629,13 @@ const App = () => {
               </tr>
             </thead>
             <tbody>
-              {amcProjects.map((amcProject, index) => (
+              {amcProjects
+                .filter(project => 
+                  project.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  project.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  project.project_type.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((amcProject, index) => (
                 <tr key={index} className="border-b">
                   <td className="px-4 py-2">
                     <div>
