@@ -399,7 +399,7 @@ const App = () => {
         
         fetchAmcProjects();
         fetchCustomerBalances();
-        alert(`AMC payment of $${amcAmount.toLocaleString()} recorded successfully! AMC renewed for 1 year.`);
+        alert(`AMC payment of ₹${amcAmount.toLocaleString()} recorded successfully! AMC renewed for 1 year.`);
       } catch (error) {
         console.error("Error recording AMC payment:", error);
         alert("Error recording AMC payment");
