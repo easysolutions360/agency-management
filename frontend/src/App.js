@@ -99,7 +99,23 @@ const App = () => {
     hosting_provider: "",
     username: "",
     password: "",
-    validity_date: ""
+    validity_date: "",
+    renewal_amount: "",
+    payment_type: "client"
+  });
+
+  const [paymentForm, setPaymentForm] = useState({
+    customer_id: "",
+    type: "",
+    reference_id: "",
+    amount: "",
+    description: ""
+  });
+
+  const [renewalForm, setRenewalForm] = useState({
+    new_validity_date: "",
+    amount: "",
+    payment_type: "client"
   });
 
   // API calls
