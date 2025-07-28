@@ -332,6 +332,53 @@ async def get_dashboard_projects():
     
     return project_details
 
+@api_router.get("/dashboard/amc-projects")
+async def get_amc_projects():
+    """Get projects that are due for AMC (Annual Maintenance Contract) - 1 year after project completion"""
+    from datetime import datetime, timedelta
+    
+    # Get all projects that have an end_date
+    projects = await db.projects.find({"end_date": {"$exists": True, "$ne": None}}).to_list(1000)
+    
+    amc_projects = []
+    current_date = datetime.now().date()
+    
+    for project in projects:
+        # Convert string dates back to date objects if needed
+        if isinstance(project.get('end_date'), str):
+            project_end_date = datetime.fromisoformat(project['end_date']).date()
+        else:
+            project_end_date = project['end_date']
+        
+        # Calculate AMC due date (1 year after project completion)
+        amc_due_date = project_end_date + timedelta(days=365)
+        
+        # Check if AMC is due (within next 30 days or already due)
+        days_until_amc = (amc_due_date - current_date).days
+        if days_until_amc <= 30:  # AMC due within 30 days
+            # Get customer details
+            customer = await db.customers.find_one({"id": project["customer_id"]})
+            
+            if customer:
+                amc_projects.append({
+                    "project_id": project["id"],
+                    "project_name": project["name"],
+                    "project_type": project["type"],
+                    "project_amount": project["amount"],
+                    "project_end_date": project_end_date.isoformat(),
+                    "amc_due_date": amc_due_date.isoformat(),
+                    "days_until_amc": days_until_amc,
+                    "customer_name": customer["name"],
+                    "customer_email": customer["email"],
+                    "customer_phone": customer["phone"],
+                    "is_overdue": days_until_amc < 0
+                })
+    
+    # Sort by days_until_amc (most urgent first)
+    amc_projects.sort(key=lambda x: x["days_until_amc"])
+    
+    return amc_projects
+
 @api_router.get("/dashboard/expiring-domains")
 async def get_expiring_domains():
     from datetime import timedelta
