@@ -182,6 +182,24 @@ const App = () => {
     }
   };
 
+  const fetchCustomerBalances = async () => {
+    try {
+      const response = await axios.get(`${API}/dashboard/customer-balances`);
+      setCustomerBalances(response.data);
+    } catch (error) {
+      console.error("Error fetching customer balances:", error);
+    }
+  };
+
+  const fetchCustomerLedger = async (customerId) => {
+    try {
+      const response = await axios.get(`${API}/ledger/customer/${customerId}`);
+      setCustomerLedger(response.data);
+    } catch (error) {
+      console.error("Error fetching customer ledger:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCustomers();
     fetchProjects();
