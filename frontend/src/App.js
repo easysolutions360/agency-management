@@ -1602,7 +1602,7 @@ const App = () => {
                   </td>
                   <td className="px-4 py-2">
                     <p className="font-medium text-green-600">
-                      ${(amcProject.amc_amount || 0).toLocaleString()}
+                      ₹{(amcProject.amc_amount || 0).toLocaleString()}
                     </p>
                   </td>
                   <td className="px-4 py-2">
