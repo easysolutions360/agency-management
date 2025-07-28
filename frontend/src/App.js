@@ -312,6 +312,123 @@ const App = () => {
     setEditingType(null);
   };
 
+  // Pagination helper functions
+  const getFilteredData = (data, searchTerm) => {
+    if (!searchTerm) return data;
+    return data.filter(item => 
+      Object.values(item).some(value => 
+        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  };
+
+  const getPaginatedData = (data, currentPage, pageSize) => {
+    if (pageSize === "all") return data;
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return data.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (totalItems, pageSize) => {
+    if (pageSize === "all") return 1;
+    return Math.ceil(totalItems / pageSize);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (newSearchTerm) => {
+    setSearchTerm(newSearchTerm);
+    setCurrentPage(1);
+  };
+
+  const handleReportsTabChange = (newTab) => {
+    setReportsTab(newTab);
+    setCurrentPage(1);
+    setSearchTerm("");
+  };
+
+  // Pagination component
+  const PaginationControls = ({ currentPage, totalPages, onPageChange, totalItems, pageSize, onPageSizeChange }) => (
+    <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+      <div className="flex items-center space-x-4">
+        <span className="text-sm text-gray-700">
+          Showing {pageSize === "all" ? totalItems : Math.min(pageSize, totalItems)} of {totalItems} results
+        </span>
+        <div className="flex items-center space-x-2">
+          <label className="text-sm text-gray-700">Show:</label>
+          <select
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(e.target.value === "all" ? "all" : parseInt(e.target.value))}
+            className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={500}>500</option>
+            <option value={1000}>1000</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
+      
+      {pageSize !== "all" && totalPages > 1 && (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          
+          <div className="flex space-x-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === pageNum
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
