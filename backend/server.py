@@ -238,16 +238,30 @@ async def create_domain_hosting(domain: DomainHostingCreate):
 @api_router.get("/domains", response_model=List[DomainHosting])
 async def get_domains():
     domains = await db.domains.find().to_list(1000)
+    # Convert string dates back to date objects
+    for domain in domains:
+        if isinstance(domain.get('validity_date'), str):
+            domain['validity_date'] = datetime.fromisoformat(domain['validity_date']).date()
     return [DomainHosting(**domain) for domain in domains]
 
 @api_router.get("/domains/project/{project_id}", response_model=List[DomainHosting])
 async def get_domains_by_project(project_id: str):
     domains = await db.domains.find({"project_id": project_id}).to_list(1000)
+    # Convert string dates back to date objects
+    for domain in domains:
+        if isinstance(domain.get('validity_date'), str):
+            domain['validity_date'] = datetime.fromisoformat(domain['validity_date']).date()
     return [DomainHosting(**domain) for domain in domains]
 
 @api_router.get("/domains/{domain_id}", response_model=DomainHosting)
 async def get_domain(domain_id: str):
     domain = await db.domains.find_one({"id": domain_id})
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    # Convert string dates back to date objects
+    if isinstance(domain.get('validity_date'), str):
+        domain['validity_date'] = datetime.fromisoformat(domain['validity_date']).date()
+    return DomainHosting(**domain)
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
     return DomainHosting(**domain)
