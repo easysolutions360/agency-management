@@ -152,6 +152,7 @@ class ProjectWithDetails(BaseModel):
     type: str
     name: str
     amount: float
+    amc_amount: float
     start_date: date
     end_date: date
     domains: List[DomainHosting]
