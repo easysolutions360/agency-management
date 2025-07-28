@@ -1416,10 +1416,11 @@ const App = () => {
               <tr className="bg-gray-50">
                 <th className="px-4 py-2 text-left">Project</th>
                 <th className="px-4 py-2 text-left">Customer</th>
+                <th className="px-4 py-2 text-left">AMC Amount</th>
                 <th className="px-4 py-2 text-left">Project End Date</th>
                 <th className="px-4 py-2 text-left">AMC Due Date</th>
                 <th className="px-4 py-2 text-left">Status</th>
-                <th className="px-4 py-2 text-left">Contact</th>
+                <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
