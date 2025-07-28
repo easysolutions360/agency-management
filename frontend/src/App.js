@@ -216,6 +216,7 @@ const App = () => {
     fetchDashboardProjects();
     fetchExpiringDomains();
     fetchDomains();
+    fetchDomainsForRenewal();
     fetchAmcProjects();
     fetchCustomerBalances();
   }, []);
