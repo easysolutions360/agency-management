@@ -1829,6 +1829,7 @@ const App = () => {
         {activeTab === "domains" && renderDomainForm()}
         {activeTab === "reports" && renderReports()}
         {activeTab === "amc" && renderAMC()}
+        {activeTab === "ledger" && renderCustomerLedgerTab()}
 
         {/* Customer Ledger Modal */}
         {ledgerModal && (
