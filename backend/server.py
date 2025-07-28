@@ -653,19 +653,19 @@ async def record_domain_renewal_payment(domain_id: str, payment_data: dict):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    # Create credit entry in customer ledger
+    # Create credit entry in customer ledger (customer pays money)
+    # Get current balance before adding this transaction
+    current_balance = await get_customer_balance(project["customer_id"])
+    
     ledger_entry = CustomerLedger(
         customer_id=project["customer_id"],
         transaction_type="credit",
         amount=payment_data["amount"],
         description=f"Payment received for domain renewal: {domain['domain_name']}",
         reference_type="domain_renewal_payment",
-        reference_id=domain_id
+        reference_id=domain_id,
+        balance=current_balance + payment_data["amount"]  # New balance after this credit
     )
-    
-    # Calculate balance
-    customer_balance = await get_customer_balance(project["customer_id"])
-    ledger_entry.balance = customer_balance + payment_data["amount"]
     
     await db.ledger.insert_one(ledger_entry.dict())
     
