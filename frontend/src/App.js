@@ -1591,7 +1591,7 @@ const App = () => {
                     <div>
                       <p className="font-medium">{amcProject.project_name}</p>
                       <p className="text-sm text-gray-600">{amcProject.project_type}</p>
-                      <p className="text-sm text-gray-600">${amcProject.project_amount.toLocaleString()}</p>
+                      <p className="text-sm text-gray-600">₹{amcProject.project_amount.toLocaleString()}</p>
                     </div>
                   </td>
                   <td className="px-4 py-2">
