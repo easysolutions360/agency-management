@@ -503,10 +503,20 @@ const App = () => {
         fetchCustomers();
         fetchDashboardProjects();
       } else if (editingType === "project") {
-        await axios.put(`${API}/projects/${editingItem.id}`, {
+        const projectData = {
           ...editingItem,
-          amount: parseFloat(editingItem.amount)
-        });
+          amount: parseFloat(editingItem.amount),
+          amc_amount: parseFloat(editingItem.amc_amount) || 0
+        };
+        
+        // Handle optional end_date - send null if empty, otherwise send the date
+        if (editingItem.end_date && editingItem.end_date.trim() !== "") {
+          projectData.end_date = editingItem.end_date;
+        } else {
+          projectData.end_date = null;
+        }
+        
+        await axios.put(`${API}/projects/${editingItem.id}`, projectData);
         fetchProjects();
         fetchDashboardProjects();
         fetchAmcProjects();
