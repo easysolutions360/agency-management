@@ -443,8 +443,11 @@ const App = () => {
         : `Confirm that the client will pay for ${domain.domain_name} renewal.`;
       
       if (window.confirm(confirmMessage)) {
-        await axios.post(`${API}/domain-renewal/${domain.id}`, {
-          domain_id: domain.id,
+        // Use domain_id from the API response (for domainsForRenewal) or id (for regular domains)
+        const domainId = domain.domain_id || domain.id;
+        
+        await axios.post(`${API}/domain-renewal/${domainId}`, {
+          domain_id: domainId,
           payment_type: paymentType,
           notes: `Domain renewal - ${paymentType === 'agency' ? 'Agency paid' : 'Client paid'}`
         });
