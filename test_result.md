@@ -122,11 +122,11 @@ backend:
 
   - task: "Domain Renewal Payment System"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -134,6 +134,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Successfully tested both payment options - client pays (direct renewal) and agency pays (creates customer debt in ledger). Domain renewal extends validity by 1 year, payment types correctly stored, and customer ledger entries created for agency payments."
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED BUG: Error in domain renewal while paid by client or self - selection is not working properly. Need to investigate and fix domain renewal payment option selection logic."
 
   - task: "AMC Payment Processing with Auto-Renewal"
     implemented: true
