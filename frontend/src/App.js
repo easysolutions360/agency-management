@@ -441,8 +441,8 @@ const App = () => {
         : `Confirm that the client will pay for ${domain.domain_name} renewal.`;
       
       if (window.confirm(confirmMessage)) {
-        await axios.post(`${API}/domain-renewal/${domain.domain_id}`, {
-          domain_id: domain.domain_id,
+        await axios.post(`${API}/domain-renewal/${domain.id}`, {
+          domain_id: domain.id,
           payment_type: paymentType,
           notes: `Domain renewal - ${paymentType === 'agency' ? 'Agency paid' : 'Client paid'}`
         });
@@ -451,6 +451,7 @@ const App = () => {
         fetchDomains();
         fetchExpiringDomains();
         fetchCustomerBalances();
+        fetchCustomerPaymentSummaries();
         
         alert(`Domain ${domain.domain_name} renewed successfully! ${paymentType === 'agency' ? 'Added to customer debt.' : ''}`);
       }
