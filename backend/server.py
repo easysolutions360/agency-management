@@ -52,6 +52,7 @@ class Project(BaseModel):
     name: str
     amount: float
     paid_amount: float = 0.0
+    amc_amount: float = 0.0
     start_date: date
     end_date: Optional[date] = None
     payment_status: str = "pending"  # pending, partial, paid
