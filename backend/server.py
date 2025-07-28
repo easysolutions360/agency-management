@@ -503,6 +503,31 @@ async def get_amc_projects():
             customer = await db.customers.find_one({"id": project["customer_id"]})
             
             if customer:
+                # Check if AMC debt entry already exists in ledger
+                amc_debt_exists = await db.ledger.find_one({
+                    "customer_id": project["customer_id"],
+                    "reference_type": "amc_due",
+                    "reference_id": project["id"]
+                })
+                
+                # If AMC is overdue and no debt entry exists, create it
+                if days_until_amc < 0 and not amc_debt_exists and project.get("amc_amount", 0) > 0:
+                    # Get current balance before adding this transaction
+                    current_balance = await get_customer_balance(project["customer_id"])
+                    
+                    # Create AMC debt entry
+                    ledger_entry = CustomerLedger(
+                        customer_id=project["customer_id"],
+                        transaction_type="debit",
+                        amount=project.get("amc_amount", 0),
+                        description=f"AMC due for project: {project['name']}",
+                        reference_type="amc_due",
+                        reference_id=project["id"],
+                        balance=current_balance - project.get("amc_amount", 0)
+                    )
+                    
+                    await db.ledger.insert_one(ledger_entry.dict())
+                
                 amc_projects.append({
                     "project_id": project["id"],
                     "project_name": project["name"],
