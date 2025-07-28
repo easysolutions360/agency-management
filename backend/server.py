@@ -680,6 +680,151 @@ async def update_amc_payment(project_id: str):
     
     return {"message": "AMC renewed for one year", "new_due_date": new_amc_due_date.isoformat()}
 
+# Enhanced Payment Endpoints
+@api_router.post("/amc-payment/{project_id}")
+async def record_amc_payment(project_id: str, payment_request: AMCPaymentRequest):
+    """Record AMC payment and renew for next year"""
+    project = await db.projects.find_one({"id": project_id})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Create payment record
+    payment_obj = Payment(
+        customer_id=project["customer_id"],
+        type="amc_payment",
+        reference_id=project_id,
+        amount=payment_request.amount,
+        description=f"AMC payment for project: {project['name']}",
+        payment_date=payment_request.payment_date
+    )
+    await db.payments.insert_one(payment_obj.dict())
+    
+    # Create ledger entry
+    ledger_entry = CustomerLedger(
+        customer_id=project["customer_id"],
+        transaction_type="credit",
+        amount=payment_request.amount,
+        description=f"AMC payment received for: {project['name']}",
+        reference_type="amc",
+        reference_id=project_id
+    )
+    
+    # Calculate balance
+    customer_balance = await get_customer_balance(project["customer_id"])
+    ledger_entry.balance = customer_balance + payment_request.amount
+    
+    await db.ledger.insert_one(ledger_entry.dict())
+    
+    # Update AMC status
+    await update_amc_payment(project_id)
+    
+    return {"message": "AMC payment recorded and renewed successfully"}
+
+@api_router.get("/payment-status/{project_id}", response_model=PaymentStatus)
+async def get_payment_status(project_id: str):
+    """Get comprehensive payment status for a project"""
+    project = await db.projects.find_one({"id": project_id})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Calculate AMC due date if project is completed
+    amc_due_date = None
+    amc_paid = False
+    
+    if project.get("end_date"):
+        end_date = datetime.fromisoformat(project["end_date"]).date()
+        amc_due_date = end_date + timedelta(days=365)
+        
+        # Check if AMC is paid
+        if project.get("amc_paid_until"):
+            amc_paid_until = datetime.fromisoformat(project["amc_paid_until"]).date()
+            amc_paid = amc_paid_until > datetime.utcnow().date()
+    
+    return PaymentStatus(
+        project_id=project_id,
+        total_amount=project["amount"],
+        paid_amount=project.get("paid_amount", 0),
+        remaining_amount=project["amount"] - project.get("paid_amount", 0),
+        payment_status=project.get("payment_status", "pending"),
+        amc_amount=project.get("amc_amount", 0),
+        amc_due_date=amc_due_date,
+        amc_paid=amc_paid
+    )
+
+@api_router.get("/customer-payment-summary/{customer_id}", response_model=CustomerPaymentSummary)
+async def get_customer_payment_summary(customer_id: str):
+    """Get comprehensive payment summary for a customer"""
+    customer = await db.customers.find_one({"id": customer_id})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Get all customer projects
+    projects = await db.projects.find({"customer_id": customer_id}).to_list(1000)
+    
+    total_project_amount = sum(p.get("amount", 0) for p in projects)
+    total_paid_amount = sum(p.get("paid_amount", 0) for p in projects)
+    outstanding_amount = total_project_amount - total_paid_amount
+    
+    # Get customer balance
+    credit_balance = await get_customer_balance(customer_id)
+    
+    # Get recent payments (last 10)
+    payments = await db.payments.find({"customer_id": customer_id}).sort("payment_date", -1).limit(10).to_list(10)
+    recent_payments = [
+        {
+            "date": p["payment_date"],
+            "amount": p["amount"],
+            "type": p["type"],
+            "description": p["description"]
+        }
+        for p in payments
+    ]
+    
+    return CustomerPaymentSummary(
+        customer_id=customer_id,
+        customer_name=customer["name"],
+        total_projects=len(projects),
+        total_project_amount=total_project_amount,
+        total_paid_amount=total_paid_amount,
+        outstanding_amount=outstanding_amount,
+        credit_balance=credit_balance,
+        recent_payments=recent_payments
+    )
+
+@api_router.get("/domains-due-renewal")
+async def get_domains_due_renewal():
+    """Get domains that are due for renewal in next 30 days"""
+    current_date = datetime.utcnow().date()
+    domains = await db.domains.find().to_list(1000)
+    
+    due_domains = []
+    for domain in domains:
+        validity_date = datetime.fromisoformat(domain["validity_date"]).date()
+        days_until_expiry = (validity_date - current_date).days
+        
+        if days_until_expiry <= 30:  # Due within 30 days
+            # Get project and customer info
+            project = await db.projects.find_one({"id": domain["project_id"]})
+            customer = await db.customers.find_one({"id": project["customer_id"]}) if project else None
+            
+            due_domains.append({
+                "domain_id": domain["id"],
+                "domain_name": domain["domain_name"],
+                "hosting_provider": domain["hosting_provider"],
+                "validity_date": domain["validity_date"],
+                "days_until_expiry": days_until_expiry,
+                "renewal_amount": domain.get("renewal_amount", 0),
+                "project_name": project["name"] if project else "Unknown",
+                "customer_name": customer["name"] if customer else "Unknown",
+                "customer_id": project["customer_id"] if project else None,
+                "is_expired": days_until_expiry < 0
+            })
+    
+    # Sort by days until expiry (most urgent first)
+    due_domains.sort(key=lambda x: x["days_until_expiry"])
+    
+    return due_domains
+
 @api_router.get("/dashboard/customer-balances")
 async def get_all_customer_balances():
     """Get balance summary for all customers"""
