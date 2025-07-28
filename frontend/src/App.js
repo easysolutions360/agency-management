@@ -214,6 +214,7 @@ const App = () => {
       });
       fetchDashboardProjects();
       fetchExpiringDomains();
+      fetchDomains();
       if (selectedProject) {
         fetchProjectDomains(selectedProject);
       }
@@ -222,6 +223,87 @@ const App = () => {
       console.error("Error adding domain:", error);
       alert("Error adding domain");
     }
+  };
+
+  // Delete functions
+  const handleDeleteCustomer = async (customerId) => {
+    if (window.confirm("Are you sure you want to delete this customer?")) {
+      try {
+        await axios.delete(`${API}/customers/${customerId}`);
+        fetchCustomers();
+        fetchDashboardProjects();
+        alert("Customer deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting customer:", error);
+        alert("Error deleting customer");
+      }
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (window.confirm("Are you sure you want to delete this project?")) {
+      try {
+        await axios.delete(`${API}/projects/${projectId}`);
+        fetchProjects();
+        fetchDashboardProjects();
+        fetchAmcProjects();
+        alert("Project deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting project:", error);
+        alert("Error deleting project");
+      }
+    }
+  };
+
+  const handleDeleteDomain = async (domainId) => {
+    if (window.confirm("Are you sure you want to delete this domain?")) {
+      try {
+        await axios.delete(`${API}/domains/${domainId}`);
+        fetchDomains();
+        fetchDashboardProjects();
+        fetchExpiringDomains();
+        alert("Domain deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting domain:", error);
+        alert("Error deleting domain");
+      }
+    }
+  };
+
+  // Edit functions
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingType === "customer") {
+        await axios.put(`${API}/customers/${editingItem.id}`, editingItem);
+        fetchCustomers();
+        fetchDashboardProjects();
+      } else if (editingType === "project") {
+        await axios.put(`${API}/projects/${editingItem.id}`, {
+          ...editingItem,
+          amount: parseFloat(editingItem.amount)
+        });
+        fetchProjects();
+        fetchDashboardProjects();
+        fetchAmcProjects();
+      } else if (editingType === "domain") {
+        await axios.put(`${API}/domains/${editingItem.id}`, editingItem);
+        fetchDomains();
+        fetchDashboardProjects();
+        fetchExpiringDomains();
+      }
+      setEditingItem(null);
+      setEditingType(null);
+      alert("Updated successfully!");
+    } catch (error) {
+      console.error("Error updating:", error);
+      alert("Error updating");
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingItem(null);
+    setEditingType(null);
   };
 
   const renderDashboard = () => (
