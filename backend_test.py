@@ -1189,7 +1189,7 @@ def test_customer_ledger_on_project_creation():
             # Check if ledger entry was created
             ledger_response = requests.get(f"{API_URL}/ledger/customer/{customer_id}")
             if ledger_response.status_code == 200:
-                updated_ledger = response.json()
+                updated_ledger = ledger_response.json()
                 new_count = len(updated_ledger)
                 
                 if new_count > initial_count:
