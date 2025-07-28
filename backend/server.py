@@ -495,6 +495,7 @@ async def get_amc_projects():
                     "project_name": project["name"],
                     "project_type": project["type"],
                     "project_amount": project["amount"],
+                    "amc_amount": project.get("amc_amount", 0.0),
                     "project_end_date": project_end_date.isoformat(),
                     "amc_due_date": amc_due_date.isoformat(),
                     "days_until_amc": days_until_amc,
