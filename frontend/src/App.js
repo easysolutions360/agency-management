@@ -1424,7 +1424,7 @@ const App = () => {
                           {domain.is_expired ? "EXPIRED" : `${domain.days_until_expiry} days`}
                         </span>
                       </td>
-                      <td className="px-4 py-2">${(domain.renewal_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2">₹{(domain.renewal_amount || 0).toLocaleString()}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
                           domain.is_expired 
