@@ -330,6 +330,31 @@ const App = () => {
     }
   };
 
+  const handleAMCPayment = async (amcProject) => {
+    const amcAmount = amcProject.amc_amount || 0;
+    if (amcAmount <= 0) {
+      alert("No AMC amount set for this project. Please update the project with AMC amount.");
+      return;
+    }
+    
+    const confirmMessage = `Record AMC payment of $${amcAmount.toLocaleString()} for project: ${amcProject.project_name}?`;
+    if (window.confirm(confirmMessage)) {
+      try {
+        await axios.post(`${API}/amc-payment/${amcProject.project_id}`, {
+          project_id: amcProject.project_id,
+          amount: amcAmount
+        });
+        
+        fetchAmcProjects();
+        fetchCustomerBalances();
+        alert(`AMC payment of $${amcAmount.toLocaleString()} recorded successfully! AMC renewed for 1 year.`);
+      } catch (error) {
+        console.error("Error recording AMC payment:", error);
+        alert("Error recording AMC payment");
+      }
+    }
+  };
+
   const openPaymentModal = (customer_id, type, reference_id, description) => {
     setPaymentForm({
       customer_id,
