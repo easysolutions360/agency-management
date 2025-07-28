@@ -190,53 +190,89 @@ backend:
         comment: "Existing dashboard functionality maintained"
 
 frontend:
+  - task: "Enhanced Project Management UI with AMC Support"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added AMC amount field to project creation form, updated form submission to handle AMC amounts"
+
+  - task: "Domain Renewal Management with Payment Options"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Removed payment type from domain creation form, added domain renewal reports tab with client/agency payment options"
+
+  - task: "AMC Payment Recording Interface"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced AMC tracker with payment recording buttons and AMC amount display"
+
+  - task: "Customer Payment Summary and Ledger Views"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added customer payments tab in reports with comprehensive payment summaries and ledger access"
+
   - task: "Customer Management UI"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Created customer form with all required fields"
-  
-  - task: "Project Management UI"
-    implemented: true
-    working: "NA"
-    file: "/app/frontend/src/App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "Created project form with customer selection and all project details"
+        comment: "Existing customer form functionality maintained"
   
   - task: "Domain/Hosting Management UI"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Created domain/hosting form with project selection and credentials"
+        comment: "Updated domain creation form to remove payment type selection"
   
   - task: "Dashboard UI with Expiring Domains"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/App.js"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: true
+    priority: "medium"
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Created comprehensive dashboard with project overview and expiring domains alerts"
+        comment: "Existing dashboard functionality maintained"
 
 metadata:
   created_by: "main_agent"
