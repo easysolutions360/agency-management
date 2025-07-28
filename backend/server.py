@@ -659,11 +659,26 @@ async def update_project_payment(project_id: str, amount: float):
             }}
         )
 
-async def update_amc_payment(amc_project_id: str):
+async def update_amc_payment(project_id: str):
     """Update AMC payment and extend for next year"""
-    # This would extend the AMC for another year
-    # Implementation depends on how AMC is stored
-    pass
+    project = await db.projects.find_one({"id": project_id})
+    if not project:
+        return
+    
+    # Calculate new AMC due date (1 year from payment date)
+    current_date = datetime.utcnow().date()
+    new_amc_due_date = current_date + timedelta(days=365)
+    
+    # Update project with AMC payment status
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {
+            "amc_paid_until": new_amc_due_date.isoformat(),
+            "last_amc_payment_date": current_date.isoformat()
+        }}
+    )
+    
+    return {"message": "AMC renewed for one year", "new_due_date": new_amc_due_date.isoformat()}
 
 @api_router.get("/dashboard/customer-balances")
 async def get_all_customer_balances():
