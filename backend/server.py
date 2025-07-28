@@ -304,6 +304,15 @@ async def update_project(project_id: str, project_update: ProjectUpdate):
     if not update_dict:
         raise HTTPException(status_code=400, detail="No fields to update")
     
+    # Convert date objects to strings for MongoDB storage
+    if 'start_date' in update_dict and update_dict['start_date']:
+        update_dict['start_date'] = update_dict['start_date'].isoformat()
+    if 'end_date' in update_dict:
+        if update_dict['end_date']:
+            update_dict['end_date'] = update_dict['end_date'].isoformat()
+        else:
+            update_dict['end_date'] = None
+    
     result = await db.projects.update_one(
         {"id": project_id}, 
         {"$set": update_dict}
@@ -312,6 +321,13 @@ async def update_project(project_id: str, project_update: ProjectUpdate):
         raise HTTPException(status_code=404, detail="Project not found")
     
     updated_project = await db.projects.find_one({"id": project_id})
+    # Convert string dates back to date objects
+    if isinstance(updated_project.get('start_date'), str):
+        updated_project['start_date'] = datetime.fromisoformat(updated_project['start_date']).date()
+    if isinstance(updated_project.get('end_date'), str) and updated_project.get('end_date'):
+        updated_project['end_date'] = datetime.fromisoformat(updated_project['end_date']).date()
+    elif updated_project.get('end_date') is None:
+        updated_project['end_date'] = None
     return Project(**updated_project)
 
 @api_router.delete("/projects/{project_id}")
