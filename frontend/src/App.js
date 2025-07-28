@@ -1484,7 +1484,7 @@ const App = () => {
                             ? "text-red-600" 
                             : "text-gray-600"
                         }`}>
-                          ${(summary.outstanding_amount || 0).toLocaleString()}
+                          ₹{(summary.outstanding_amount || 0).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-4 py-2">
