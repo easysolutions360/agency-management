@@ -51,8 +51,10 @@ class Project(BaseModel):
     type: str
     name: str
     amount: float
+    paid_amount: float = 0.0
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
+    payment_status: str = "pending"  # pending, partial, paid
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class ProjectCreate(BaseModel):
@@ -61,7 +63,7 @@ class ProjectCreate(BaseModel):
     name: str
     amount: float
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
 
 class ProjectUpdate(BaseModel):
     type: Optional[str] = None
@@ -78,6 +80,9 @@ class DomainHosting(BaseModel):
     username: str
     password: str
     validity_date: date
+    renewal_amount: float = 0.0
+    renewal_status: str = "active"  # active, due, renewed
+    payment_type: str = "client"  # client, agency
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class DomainHostingCreate(BaseModel):
@@ -87,6 +92,8 @@ class DomainHostingCreate(BaseModel):
     username: str
     password: str
     validity_date: date
+    renewal_amount: float = 0.0
+    payment_type: str = "client"
 
 class DomainHostingUpdate(BaseModel):
     domain_name: Optional[str] = None
@@ -94,6 +101,45 @@ class DomainHostingUpdate(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     validity_date: Optional[date] = None
+    renewal_amount: Optional[float] = None
+    renewal_status: Optional[str] = None
+    payment_type: Optional[str] = None
+
+class Payment(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_id: str
+    type: str  # project_advance, domain_renewal, amc_payment, credit_payment
+    reference_id: str  # project_id, domain_id, or amc_id
+    amount: float
+    description: str
+    payment_date: datetime = Field(default_factory=datetime.utcnow)
+    status: str = "completed"  # completed, pending, failed
+
+class PaymentCreate(BaseModel):
+    customer_id: str
+    type: str
+    reference_id: str
+    amount: float
+    description: str
+
+class CustomerLedger(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_id: str
+    transaction_type: str  # debit, credit
+    amount: float
+    description: str
+    reference_type: str  # project, domain, amc
+    reference_id: str
+    date: datetime = Field(default_factory=datetime.utcnow)
+    balance: float = 0.0
+
+class CustomerLedgerCreate(BaseModel):
+    customer_id: str
+    transaction_type: str
+    amount: float
+    description: str
+    reference_type: str
+    reference_id: str
 
 class ProjectWithDetails(BaseModel):
     id: str
