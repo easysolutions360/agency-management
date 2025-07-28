@@ -96,7 +96,6 @@ class DomainHostingCreate(BaseModel):
     password: str
     validity_date: date
     renewal_amount: float = 0.0
-    payment_type: str = "client"
 
 class DomainHostingUpdate(BaseModel):
     domain_name: Optional[str] = None
