@@ -1748,6 +1748,111 @@ const App = () => {
         {activeTab === "domains" && renderDomainForm()}
         {activeTab === "reports" && renderReports()}
         {activeTab === "amc" && renderAMC()}
+
+        {/* Customer Ledger Modal */}
+        {ledgerModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-hidden mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">
+                  Customer Ledger - {selectedCustomer?.name}
+                </h2>
+                <button
+                  onClick={() => setLedgerModal(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="overflow-y-auto max-h-[70vh]">
+                {customerLedger.length > 0 ? (
+                  <>
+                    <table className="w-full table-auto mb-4">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-4 py-2 text-left">Date</th>
+                          <th className="px-4 py-2 text-left">Type</th>
+                          <th className="px-4 py-2 text-left">Amount</th>
+                          <th className="px-4 py-2 text-left">Description</th>
+                          <th className="px-4 py-2 text-left">Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          const startIndex = (ledgerCurrentPage - 1) * ledgerPageSize;
+                          const endIndex = startIndex + ledgerPageSize;
+                          const paginatedLedger = customerLedger.slice(startIndex, endIndex);
+                          
+                          return paginatedLedger.map((entry) => (
+                            <tr key={entry.id} className="border-b hover:bg-gray-50">
+                              <td className="px-4 py-2">
+                                {new Date(entry.date).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-2">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  entry.transaction_type === 'credit' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {entry.transaction_type === 'credit' ? 'CREDIT' : 'DEBIT'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2">
+                                <span className={entry.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'}>
+                                  {entry.transaction_type === 'credit' ? '+' : '-'}₹{entry.amount.toLocaleString()}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2 text-sm">
+                                {entry.description}
+                              </td>
+                              <td className="px-4 py-2 font-medium">
+                                <span className={entry.balance >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                  ₹{Math.abs(entry.balance).toLocaleString()}
+                                  {entry.balance >= 0 ? ' CR' : ' DR'}
+                                </span>
+                              </td>
+                            </tr>
+                          ));
+                        })()}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination Controls */}
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-600">
+                        Showing {((ledgerCurrentPage - 1) * ledgerPageSize) + 1} to {Math.min(ledgerCurrentPage * ledgerPageSize, customerLedger.length)} of {customerLedger.length} transactions
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setLedgerCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={ledgerCurrentPage === 1}
+                          className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+                        <span className="px-3 py-1">
+                          Page {ledgerCurrentPage} of {Math.ceil(customerLedger.length / ledgerPageSize)}
+                        </span>
+                        <button
+                          onClick={() => setLedgerCurrentPage(prev => Math.min(prev + 1, Math.ceil(customerLedger.length / ledgerPageSize)))}
+                          disabled={ledgerCurrentPage >= Math.ceil(customerLedger.length / ledgerPageSize)}
+                          className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No transactions found for this customer.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
