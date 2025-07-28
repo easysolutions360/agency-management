@@ -72,6 +72,9 @@ const App = () => {
   const [renewalModal, setRenewalModal] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [passwordVisibility, setPasswordVisibility] = useState({}); // For toggling password visibility
+  const [ledgerModal, setLedgerModal] = useState(false); // For customer ledger modal
+  const [ledgerCurrentPage, setLedgerCurrentPage] = useState(1);
+  const [ledgerPageSize] = useState(10);
   
   // Pagination states
   const [reportsTab, setReportsTab] = useState("customers");
