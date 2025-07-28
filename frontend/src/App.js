@@ -811,6 +811,93 @@ const App = () => {
 
     return (
       <div className="space-y-6">
+        {/* Payment Modal */}
+        {paymentModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4">Record Payment</h3>
+              <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                <FormInput
+                  label="Amount"
+                  type="number"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                />
+                <FormInput
+                  label="Description"
+                  value={paymentForm.description}
+                  onChange={(e) => setPaymentForm({...paymentForm, description: e.target.value})}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
+                  >
+                    Record Payment
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentModal(false)}
+                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Renewal Modal */}
+        {renewalModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4">Renew Domain: {selectedDomain?.domain_name}</h3>
+              <form onSubmit={handleRenewalSubmit} className="space-y-4">
+                <FormInput
+                  label="New Validity Date"
+                  type="date"
+                  value={renewalForm.new_validity_date}
+                  onChange={(e) => setRenewalForm({...renewalForm, new_validity_date: e.target.value})}
+                />
+                <FormInput
+                  label="Renewal Amount"
+                  type="number"
+                  value={renewalForm.amount}
+                  onChange={(e) => setRenewalForm({...renewalForm, amount: e.target.value})}
+                />
+                <FormInput
+                  label="Payment Type"
+                  value={renewalForm.payment_type}
+                  onChange={(e) => setRenewalForm({...renewalForm, payment_type: e.target.value})}
+                  options={[
+                    { value: "client", label: "Client Paid" },
+                    { value: "agency", label: "Agency Paid (Add to Customer Credit)" }
+                  ]}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700"
+                  >
+                    Renew Domain
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRenewalModal(false);
+                      setSelectedDomain(null);
+                    }}
+                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Edit Modal */}
         {editingItem && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
