@@ -1085,6 +1085,13 @@ const App = () => {
                       onChange={(e) => setEditingItem({...editingItem, amount: e.target.value})}
                     />
                     <FormInput
+                      label="AMC Amount"
+                      type="number"
+                      value={editingItem.amc_amount || ""}
+                      onChange={(e) => setEditingItem({...editingItem, amc_amount: e.target.value})}
+                      required={false}
+                    />
+                    <FormInput
                       label="Start Date"
                       type="date"
                       value={editingItem.start_date}
