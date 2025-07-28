@@ -251,6 +251,12 @@ const App = () => {
     fetchCustomerBalances();
   }, []);
 
+  useEffect(() => {
+    if (customers.length > 0) {
+      fetchCustomerPaymentSummaries();
+    }
+  }, [customers]);
+
   const handleCustomerSubmit = async (e) => {
     e.preventDefault();
     try {
