@@ -201,6 +201,15 @@ const App = () => {
     }
   };
 
+  const fetchDomainsForRenewal = async () => {
+    try {
+      const response = await axios.get(`${API}/domains-due-renewal`);
+      setDomainsForRenewal(response.data);
+    } catch (error) {
+      console.error("Error fetching domains for renewal:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCustomers();
     fetchProjects();
