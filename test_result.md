@@ -176,6 +176,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Successfully tested customer payment summary (total projects, amounts, outstanding balance, credit balance), customer ledger with credit/debit entries, payment status endpoint, and domains due for renewal within 30 days. All tracking functionality working correctly."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Bug Fix 4 & 5 - Domain Renewal Data and Customer Ledger testing completed successfully. Domains due for renewal endpoint returns proper data with all required fields (domain_id, domain_name, hosting_provider, validity_date, days_until_expiry, renewal_amount, project_name, customer_name, customer_id, is_expired). Customer ledger functionality works correctly with proper transaction history display, both credit and debit transactions, and entries ordered by date (newest first)."
 
   - task: "Customer Management API"
     implemented: true
