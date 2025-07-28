@@ -246,7 +246,7 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -260,6 +260,9 @@ backend:
       - working: true
         agent: "main"
         comment: "FIXED: Corrected balance calculation logic in all ledger entry creation functions. Fixed issue where balance was calculated incorrectly - now properly calculates current balance before creating new transaction and sets correct balance after transaction. Fixed in project creation, payment recording, domain renewal agency payment, domain renewal payment, and AMC payment functions."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Bug Fix 6 - AMC Search testing completed successfully. AMC projects endpoint returns proper data with all required fields (project_id, project_name, project_type, project_amount, project_end_date, amc_due_date, days_until_amc, customer_name, customer_email, customer_phone, is_overdue). Test projects with end dates are correctly identified in AMC list. Data structure is correct and search functionality works properly."
 
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
