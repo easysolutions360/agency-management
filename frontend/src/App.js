@@ -1344,6 +1344,7 @@ const App = () => {
                     <th className="px-4 py-2 text-left">Domain Name</th>
                     <th className="px-4 py-2 text-left">Hosting Provider</th>
                     <th className="px-4 py-2 text-left">Username</th>
+                    <th className="px-4 py-2 text-left">Password</th>
                     <th className="px-4 py-2 text-left">Validity Date</th>
                     <th className="px-4 py-2 text-left">Renewal Amount</th>
                     <th className="px-4 py-2 text-left">Status</th>
