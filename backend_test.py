@@ -1575,6 +1575,10 @@ def main():
         ("Domains Due for Renewal", test_domains_due_renewal),
         ("Customer Ledger", test_customer_ledger),
         ("Payment Status", test_payment_status),
+        # New tests for specific review requirements
+        ("Project End Date Non-Mandatory Implementation", test_project_end_date_non_mandatory),
+        ("Customer Ledger Entry on Project Creation", test_customer_ledger_on_project_creation),
+        ("Enhanced Customer Ledger Functionality", test_enhanced_customer_ledger_functionality),
         ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
