@@ -346,6 +346,32 @@ const App = () => {
     setRenewalModal(true);
   };
 
+  const handleDomainRenewal = async (domain, paymentType) => {
+    try {
+      const confirmMessage = paymentType === 'agency' 
+        ? `Are you sure the agency will pay for ${domain.domain_name} renewal? This will be added to customer's debt.`
+        : `Confirm that the client will pay for ${domain.domain_name} renewal.`;
+      
+      if (window.confirm(confirmMessage)) {
+        await axios.post(`${API}/domain-renewal/${domain.domain_id}`, {
+          domain_id: domain.domain_id,
+          payment_type: paymentType,
+          notes: `Domain renewal - ${paymentType === 'agency' ? 'Agency paid' : 'Client paid'}`
+        });
+        
+        fetchDomainsForRenewal();
+        fetchDomains();
+        fetchExpiringDomains();
+        fetchCustomerBalances();
+        
+        alert(`Domain ${domain.domain_name} renewed successfully! ${paymentType === 'agency' ? 'Added to customer debt.' : ''}`);
+      }
+    } catch (error) {
+      console.error("Error renewing domain:", error);
+      alert("Error renewing domain");
+    }
+  };
+
   // Delete functions
   const handleDeleteCustomer = async (customerId) => {
     if (window.confirm("Are you sure you want to delete this customer?")) {
