@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Web development agency customer onboarding and project management system with customer data (Name, Phone, Email, Address), project details (Type, Name, Amount, Start Date, End Date), and domain/hosting details (multiple per project with username, password, validity dates) with due date reminders"
+user_problem_statement: "Web development agency customer onboarding and project management system with enhanced payment tracking. System includes customer data, project details with AMC amounts, domain/hosting management, and comprehensive payment system with advance payments, domain renewal options, AMC payment processing, and customer ledger tracking."
 
 backend:
   - task: "Customer Management API"
