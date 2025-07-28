@@ -778,15 +778,6 @@ const App = () => {
             onChange={(e) => setDomainForm({ ...domainForm, renewal_amount: e.target.value })}
             required={false}
           />
-          <FormInput
-            label="Payment Type"
-            value={domainForm.payment_type}
-            onChange={(e) => setDomainForm({ ...domainForm, payment_type: e.target.value })}
-            options={[
-              { value: "client", label: "Client Pays" },
-              { value: "agency", label: "Agency Pays" }
-            ]}
-          />
         </div>
         <button
           type="submit"
