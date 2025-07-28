@@ -230,9 +230,9 @@ backend:
 
   - task: "Customer Ledger Entry on Project Creation"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
@@ -245,6 +245,9 @@ backend:
       - working: false
         agent: "user"
         comment: "USER REPORTED BUG: Project onboarding debt is not going into customer ledger and advance payment from client is not working completely. Need to investigate and fix the customer ledger debt creation and advance payment processing logic."
+      - working: true
+        agent: "main"
+        comment: "FIXED: Corrected balance calculation logic in all ledger entry creation functions. Fixed issue where balance was calculated incorrectly - now properly calculates current balance before creating new transaction and sets correct balance after transaction. Fixed in project creation, payment recording, domain renewal agency payment, domain renewal payment, and AMC payment functions."
 
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
