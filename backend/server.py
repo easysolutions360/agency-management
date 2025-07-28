@@ -162,7 +162,13 @@ async def create_project(project: ProjectCreate):
     
     project_dict = project.dict()
     project_obj = Project(**project_dict)
-    await db.projects.insert_one(project_obj.dict())
+    
+    # Convert date objects to strings for MongoDB storage
+    project_data = project_obj.dict()
+    project_data['start_date'] = project_data['start_date'].isoformat()
+    project_data['end_date'] = project_data['end_date'].isoformat()
+    
+    await db.projects.insert_one(project_data)
     return project_obj
 
 @api_router.get("/projects", response_model=List[Project])
