@@ -296,4 +296,4 @@ test_plan:
 
 agent_communication:
   - agent: "main"
-    message: "Built complete agency management system with customer onboarding, project management, and domain/hosting tracking with expiring domains alerts. All CRUD operations implemented. Ready for backend testing."
+    message: "Enhanced the agency management system with comprehensive payment functionality. Key improvements: 1) Added AMC amount field to projects and payment recording, 2) Implemented domain renewal with dual payment options (client vs agency), 3) Enhanced customer ledger with complete payment tracking, 4) Added customer payment summaries and comprehensive payment status views. All new backend endpoints and frontend UI components implemented. Ready for comprehensive testing of the enhanced payment system."
