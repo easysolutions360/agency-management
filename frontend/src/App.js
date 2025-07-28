@@ -202,6 +202,13 @@ const App = () => {
     }
   };
 
+  const viewCustomerLedger = (customerId, customerName) => {
+    setSelectedCustomer({ id: customerId, name: customerName });
+    fetchCustomerLedger(customerId);
+    // You might want to open a modal or navigate to a different view
+    // For now, we'll just set the selected customer
+  };
+
   const fetchDomainsForRenewal = async () => {
     try {
       const response = await axios.get(`${API}/domains-due-renewal`);
