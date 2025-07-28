@@ -303,8 +303,10 @@ async def get_expiring_domains():
     
     # Get domains expiring in the next 30 days
     thirty_days_from_now = datetime.now().date() + timedelta(days=30)
+    thirty_days_str = thirty_days_from_now.isoformat()
+    
     domains = await db.domains.find({
-        "validity_date": {"$lte": thirty_days_from_now}
+        "validity_date": {"$lte": thirty_days_str}
     }).to_list(1000)
     
     expiring_domains = []
