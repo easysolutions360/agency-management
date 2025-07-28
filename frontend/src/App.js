@@ -960,6 +960,8 @@ const App = () => {
         {activeTab === "customers" && renderCustomerForm()}
         {activeTab === "projects" && renderProjectForm()}
         {activeTab === "domains" && renderDomainForm()}
+        {activeTab === "reports" && renderReports()}
+        {activeTab === "amc" && renderAMC()}
       </div>
     </div>
   );
