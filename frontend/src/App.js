@@ -670,262 +670,351 @@ const App = () => {
     </div>
   );
 
-  const renderReports = () => (
-    <div className="space-y-6">
-      {/* Edit Modal */}
-      {editingItem && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Edit {editingType}</h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              {editingType === "customer" && (
-                <>
-                  <FormInput
-                    label="Name"
-                    value={editingItem.name}
-                    onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                  />
-                  <FormInput
-                    label="Phone"
-                    value={editingItem.phone}
-                    onChange={(e) => setEditingItem({...editingItem, phone: e.target.value})}
-                  />
-                  <FormInput
-                    label="Email"
-                    value={editingItem.email}
-                    onChange={(e) => setEditingItem({...editingItem, email: e.target.value})}
-                  />
-                  <FormInput
-                    label="Address"
-                    value={editingItem.address}
-                    onChange={(e) => setEditingItem({...editingItem, address: e.target.value})}
-                  />
-                </>
-              )}
-              {editingType === "project" && (
-                <>
-                  <FormInput
-                    label="Type"
-                    value={editingItem.type}
-                    onChange={(e) => setEditingItem({...editingItem, type: e.target.value})}
-                  />
-                  <FormInput
-                    label="Name"
-                    value={editingItem.name}
-                    onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
-                  />
-                  <FormInput
-                    label="Amount"
-                    type="number"
-                    value={editingItem.amount}
-                    onChange={(e) => setEditingItem({...editingItem, amount: e.target.value})}
-                  />
-                  <FormInput
-                    label="Start Date"
-                    type="date"
-                    value={editingItem.start_date}
-                    onChange={(e) => setEditingItem({...editingItem, start_date: e.target.value})}
-                  />
-                  <FormInput
-                    label="End Date"
-                    type="date"
-                    value={editingItem.end_date || ""}
-                    onChange={(e) => setEditingItem({...editingItem, end_date: e.target.value})}
-                    required={false}
-                  />
-                </>
-              )}
-              {editingType === "domain" && (
-                <>
-                  <FormInput
-                    label="Domain Name"
-                    value={editingItem.domain_name}
-                    onChange={(e) => setEditingItem({...editingItem, domain_name: e.target.value})}
-                  />
-                  <FormInput
-                    label="Hosting Provider"
-                    value={editingItem.hosting_provider}
-                    onChange={(e) => setEditingItem({...editingItem, hosting_provider: e.target.value})}
-                  />
-                  <FormInput
-                    label="Username"
-                    value={editingItem.username}
-                    onChange={(e) => setEditingItem({...editingItem, username: e.target.value})}
-                  />
-                  <FormInput
-                    label="Password"
-                    type="password"
-                    value={editingItem.password}
-                    onChange={(e) => setEditingItem({...editingItem, password: e.target.value})}
-                  />
-                  <FormInput
-                    label="Validity Date"
-                    type="date"
-                    value={editingItem.validity_date}
-                    onChange={(e) => setEditingItem({...editingItem, validity_date: e.target.value})}
-                  />
-                </>
-              )}
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={handleEditCancel}
-                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+  const renderReports = () => {
+    // Get current data based on active reports tab
+    let currentData = [];
+    if (reportsTab === "customers") {
+      currentData = customers;
+    } else if (reportsTab === "projects") {
+      currentData = projects;
+    } else if (reportsTab === "domains") {
+      currentData = domains;
+    }
+
+    // Apply search filter
+    const filteredData = getFilteredData(currentData, searchTerm);
+    
+    // Apply pagination
+    const paginatedData = getPaginatedData(filteredData, currentPage, pageSize);
+    
+    // Calculate total pages
+    const totalPages = getTotalPages(filteredData.length, pageSize);
+
+    return (
+      <div className="space-y-6">
+        {/* Edit Modal */}
+        {editingItem && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4">Edit {editingType}</h3>
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                {editingType === "customer" && (
+                  <>
+                    <FormInput
+                      label="Name"
+                      value={editingItem.name}
+                      onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
+                    />
+                    <FormInput
+                      label="Phone"
+                      value={editingItem.phone}
+                      onChange={(e) => setEditingItem({...editingItem, phone: e.target.value})}
+                    />
+                    <FormInput
+                      label="Email"
+                      value={editingItem.email}
+                      onChange={(e) => setEditingItem({...editingItem, email: e.target.value})}
+                    />
+                    <FormInput
+                      label="Address"
+                      value={editingItem.address}
+                      onChange={(e) => setEditingItem({...editingItem, address: e.target.value})}
+                    />
+                  </>
+                )}
+                {editingType === "project" && (
+                  <>
+                    <FormInput
+                      label="Type"
+                      value={editingItem.type}
+                      onChange={(e) => setEditingItem({...editingItem, type: e.target.value})}
+                    />
+                    <FormInput
+                      label="Name"
+                      value={editingItem.name}
+                      onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
+                    />
+                    <FormInput
+                      label="Amount"
+                      type="number"
+                      value={editingItem.amount}
+                      onChange={(e) => setEditingItem({...editingItem, amount: e.target.value})}
+                    />
+                    <FormInput
+                      label="Start Date"
+                      type="date"
+                      value={editingItem.start_date}
+                      onChange={(e) => setEditingItem({...editingItem, start_date: e.target.value})}
+                    />
+                    <FormInput
+                      label="End Date"
+                      type="date"
+                      value={editingItem.end_date || ""}
+                      onChange={(e) => setEditingItem({...editingItem, end_date: e.target.value})}
+                      required={false}
+                    />
+                  </>
+                )}
+                {editingType === "domain" && (
+                  <>
+                    <FormInput
+                      label="Domain Name"
+                      value={editingItem.domain_name}
+                      onChange={(e) => setEditingItem({...editingItem, domain_name: e.target.value})}
+                    />
+                    <FormInput
+                      label="Hosting Provider"
+                      value={editingItem.hosting_provider}
+                      onChange={(e) => setEditingItem({...editingItem, hosting_provider: e.target.value})}
+                    />
+                    <FormInput
+                      label="Username"
+                      value={editingItem.username}
+                      onChange={(e) => setEditingItem({...editingItem, username: e.target.value})}
+                    />
+                    <FormInput
+                      label="Password"
+                      type="password"
+                      value={editingItem.password}
+                      onChange={(e) => setEditingItem({...editingItem, password: e.target.value})}
+                    />
+                    <FormInput
+                      label="Validity Date"
+                      type="date"
+                      value={editingItem.validity_date}
+                      onChange={(e) => setEditingItem({...editingItem, validity_date: e.target.value})}
+                    />
+                  </>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEditCancel}
+                    className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Customers Report */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Customers Report</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Phone</th>
-                <th className="px-4 py-2 text-left">Address</th>
-                <th className="px-4 py-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((customer) => (
-                <tr key={customer.id} className="border-b">
-                  <td className="px-4 py-2 font-medium">{customer.name}</td>
-                  <td className="px-4 py-2">{customer.email}</td>
-                  <td className="px-4 py-2">{customer.phone}</td>
-                  <td className="px-4 py-2">{customer.address}</td>
-                  <td className="px-4 py-2">
-                    <button
-                      onClick={() => {
-                        setEditingItem(customer);
-                        setEditingType("customer");
-                      }}
-                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCustomer(customer.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Reports Main Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Reports</h2>
+            
+            {/* Search Bar */}
+            <div className="w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Reports Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              onClick={() => handleReportsTabChange("customers")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                reportsTab === "customers"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Customers ({customers.length})
+            </button>
+            <button
+              onClick={() => handleReportsTabChange("projects")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                reportsTab === "projects"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Projects ({projects.length})
+            </button>
+            <button
+              onClick={() => handleReportsTabChange("domains")}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                reportsTab === "domains"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Domains ({domains.length})
+            </button>
+          </div>
+
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            {reportsTab === "customers" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Name</th>
+                    <th className="px-4 py-2 text-left">Email</th>
+                    <th className="px-4 py-2 text-left">Phone</th>
+                    <th className="px-4 py-2 text-left">Address</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((customer) => (
+                    <tr key={customer.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{customer.name}</td>
+                      <td className="px-4 py-2">{customer.email}</td>
+                      <td className="px-4 py-2">{customer.phone}</td>
+                      <td className="px-4 py-2">{customer.address}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingItem(customer);
+                              setEditingType("customer");
+                            }}
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCustomer(customer.id)}
+                            className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {reportsTab === "projects" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Project Name</th>
+                    <th className="px-4 py-2 text-left">Type</th>
+                    <th className="px-4 py-2 text-left">Amount</th>
+                    <th className="px-4 py-2 text-left">Start Date</th>
+                    <th className="px-4 py-2 text-left">End Date</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((project) => (
+                    <tr key={project.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{project.name}</td>
+                      <td className="px-4 py-2">{project.type}</td>
+                      <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
+                      <td className="px-4 py-2">{new Date(project.start_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">
+                        {project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingItem(project);
+                              setEditingType("project");
+                            }}
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {reportsTab === "domains" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Domain Name</th>
+                    <th className="px-4 py-2 text-left">Hosting Provider</th>
+                    <th className="px-4 py-2 text-left">Username</th>
+                    <th className="px-4 py-2 text-left">Validity Date</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((domain) => (
+                    <tr key={domain.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{domain.domain_name}</td>
+                      <td className="px-4 py-2">{domain.hosting_provider}</td>
+                      <td className="px-4 py-2">{domain.username}</td>
+                      <td className="px-4 py-2">{new Date(domain.validity_date).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingItem(domain);
+                              setEditingType("domain");
+                            }}
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDomain(domain.id)}
+                            className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Empty State */}
+          {paginatedData.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500">
+                {searchTerm ? "No results found for your search." : `No ${reportsTab} found.`}
+              </p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalItems={filteredData.length}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
       </div>
-
-      {/* Projects Report */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Projects Report</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-2 text-left">Project Name</th>
-                <th className="px-4 py-2 text-left">Type</th>
-                <th className="px-4 py-2 text-left">Amount</th>
-                <th className="px-4 py-2 text-left">Start Date</th>
-                <th className="px-4 py-2 text-left">End Date</th>
-                <th className="px-4 py-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((project) => (
-                <tr key={project.id} className="border-b">
-                  <td className="px-4 py-2 font-medium">{project.name}</td>
-                  <td className="px-4 py-2">{project.type}</td>
-                  <td className="px-4 py-2">${project.amount.toLocaleString()}</td>
-                  <td className="px-4 py-2">{new Date(project.start_date).toLocaleDateString()}</td>
-                  <td className="px-4 py-2">
-                    {project.end_date ? new Date(project.end_date).toLocaleDateString() : "Not set"}
-                  </td>
-                  <td className="px-4 py-2">
-                    <button
-                      onClick={() => {
-                        setEditingItem(project);
-                        setEditingType("project");
-                      }}
-                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProject(project.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Domains Report */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Domains/Hosting Report</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="px-4 py-2 text-left">Domain Name</th>
-                <th className="px-4 py-2 text-left">Hosting Provider</th>
-                <th className="px-4 py-2 text-left">Username</th>
-                <th className="px-4 py-2 text-left">Validity Date</th>
-                <th className="px-4 py-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {domains.map((domain) => (
-                <tr key={domain.id} className="border-b">
-                  <td className="px-4 py-2 font-medium">{domain.domain_name}</td>
-                  <td className="px-4 py-2">{domain.hosting_provider}</td>
-                  <td className="px-4 py-2">{domain.username}</td>
-                  <td className="px-4 py-2">{new Date(domain.validity_date).toLocaleDateString()}</td>
-                  <td className="px-4 py-2">
-                    <button
-                      onClick={() => {
-                        setEditingItem(domain);
-                        setEditingType("domain");
-                      }}
-                      className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteDomain(domain.id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderAMC = () => (
     <div className="space-y-6">
