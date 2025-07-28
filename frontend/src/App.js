@@ -1431,6 +1431,68 @@ const App = () => {
                 </tbody>
               </table>
             )}
+
+            {reportsTab === "payments" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Customer</th>
+                    <th className="px-4 py-2 text-left">Projects</th>
+                    <th className="px-4 py-2 text-left">Total Amount</th>
+                    <th className="px-4 py-2 text-left">Paid Amount</th>
+                    <th className="px-4 py-2 text-left">Outstanding</th>
+                    <th className="px-4 py-2 text-left">Credit Balance</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((summary) => (
+                    <tr key={summary.customer_id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{summary.customer_name}</td>
+                      <td className="px-4 py-2">{summary.total_projects}</td>
+                      <td className="px-4 py-2">${(summary.total_project_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-green-600">${(summary.total_paid_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-2">
+                        <span className={`font-medium ${
+                          (summary.outstanding_amount || 0) > 0 
+                            ? "text-red-600" 
+                            : "text-gray-600"
+                        }`}>
+                          ${(summary.outstanding_amount || 0).toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={`font-medium ${
+                          (summary.credit_balance || 0) < 0 
+                            ? "text-red-600" 
+                            : summary.credit_balance > 0
+                            ? "text-green-600"
+                            : "text-gray-600"
+                        }`}>
+                          ${(summary.credit_balance || 0).toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => viewCustomerLedger(summary.customer_id, summary.customer_name)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                          >
+                            View Ledger
+                          </button>
+                          <button
+                            onClick={() => openPaymentModal(summary.customer_id, 'project_advance', '', `Payment for ${summary.customer_name}`)}
+                            className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                          >
+                            Add Payment
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Empty State */}
