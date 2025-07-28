@@ -318,3 +318,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Enhanced the agency management system with comprehensive payment functionality. Key improvements: 1) Added AMC amount field to projects and payment recording, 2) Implemented domain renewal with dual payment options (client vs agency), 3) Enhanced customer ledger with complete payment tracking, 4) Added customer payment summaries and comprehensive payment status views. All new backend endpoints and frontend UI components implemented. Ready for comprehensive testing of the enhanced payment system."
+  - agent: "main"
+    message: "TASK UPDATE: Implemented requested changes: 1) Made project end_date non-mandatory (can be added later, AMC starts 1 year after end date), 2) Added customer ledger entry when project is created (debit entry for project amount), 3) Fixed date handling for null end_date in all project endpoints. About to test customer ledger functionality comprehensively."
