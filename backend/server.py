@@ -154,7 +154,7 @@ class ProjectWithDetails(BaseModel):
     amount: float
     amc_amount: float
     start_date: date
-    end_date: date
+    end_date: Optional[date] = None
     domains: List[DomainHosting]
     created_at: datetime
 
