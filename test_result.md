@@ -212,27 +212,33 @@ backend:
 
   - task: "Project End Date Non-Mandatory Implementation"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Made project end_date non-mandatory in models and API. Fixed date handling in all project endpoints to properly handle null end_date values. AMC will start 1 year after end_date when set."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Successfully tested project creation with and without end_date, updating projects to add/remove end_date, and verified all project retrieval endpoints handle null end_date properly. Fixed backend bug in project update endpoint that was filtering out None values for end_date. Also fixed ProjectWithDetails model to allow Optional[date] for end_date field."
 
   - task: "Customer Ledger Entry on Project Creation"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added customer ledger entry creation when project is onboarded. Creates debit entry for project amount and updates customer balance calculation."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED: Successfully verified that when a project is created, a customer ledger entry is automatically created with correct details (debit transaction, correct amount, proper description, correct reference). Customer balance calculation is working correctly after project creation. Fixed test logic bug in ledger verification."
 
 frontend:
   - task: "Enhanced Project Management UI with AMC Support"
