@@ -300,7 +300,12 @@ async def get_project(project_id: str):
 
 @api_router.put("/projects/{project_id}", response_model=Project)
 async def update_project(project_id: str, project_update: ProjectUpdate):
-    update_dict = {k: v for k, v in project_update.dict().items() if v is not None}
+    # Allow None values for end_date to make it optional
+    update_dict = {}
+    for k, v in project_update.dict().items():
+        if v is not None or k == 'end_date':
+            update_dict[k] = v
+    
     if not update_dict:
         raise HTTPException(status_code=400, detail="No fields to update")
     
