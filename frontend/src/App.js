@@ -63,6 +63,12 @@ const App = () => {
   const [amcProjects, setAmcProjects] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  
+  // Pagination states
+  const [reportsTab, setReportsTab] = useState("customers");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Form states
   const [customerForm, setCustomerForm] = useState({
