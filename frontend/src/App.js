@@ -1204,7 +1204,7 @@ const App = () => {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              Domain Renewals
+              Domain Renewals ({domainsForRenewal.length})
             </button>
             <button
               onClick={() => handleReportsTabChange("payments")}
