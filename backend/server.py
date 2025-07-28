@@ -460,6 +460,139 @@ async def get_expiring_domains():
     
     return expiring_domains
 
+# Payment Routes
+@api_router.post("/payments", response_model=Payment)
+async def create_payment(payment: PaymentCreate):
+    # Create payment record
+    payment_dict = payment.dict()
+    payment_obj = Payment(**payment_dict)
+    await db.payments.insert_one(payment_obj.dict())
+    
+    # Create ledger entry
+    ledger_entry = CustomerLedger(
+        customer_id=payment.customer_id,
+        transaction_type="credit",
+        amount=payment.amount,
+        description=payment.description,
+        reference_type=payment.type,
+        reference_id=payment.reference_id
+    )
+    
+    # Calculate balance
+    customer_balance = await get_customer_balance(payment.customer_id)
+    ledger_entry.balance = customer_balance + payment.amount
+    
+    await db.ledger.insert_one(ledger_entry.dict())
+    
+    # Update payment status in respective modules
+    if payment.type == "project_advance":
+        await update_project_payment(payment.reference_id, payment.amount)
+    elif payment.type == "amc_payment":
+        await update_amc_payment(payment.reference_id)
+    
+    return payment_obj
+
+@api_router.get("/payments/customer/{customer_id}", response_model=List[Payment])
+async def get_customer_payments(customer_id: str):
+    payments = await db.payments.find({"customer_id": customer_id}).to_list(1000)
+    return [Payment(**payment) for payment in payments]
+
+@api_router.get("/ledger/customer/{customer_id}", response_model=List[CustomerLedger])
+async def get_customer_ledger(customer_id: str):
+    ledger = await db.ledger.find({"customer_id": customer_id}).sort("date", -1).to_list(1000)
+    return [CustomerLedger(**entry) for entry in ledger]
+
+@api_router.post("/domain-renewal/{domain_id}")
+async def renew_domain(domain_id: str, renewal_data: dict):
+    domain = await db.domains.find_one({"id": domain_id})
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    
+    # Update domain validity
+    new_validity = datetime.fromisoformat(renewal_data["new_validity_date"]).date()
+    await db.domains.update_one(
+        {"id": domain_id},
+        {"$set": {
+            "validity_date": new_validity.isoformat(),
+            "renewal_status": "renewed"
+        }}
+    )
+    
+    # If agency paid, create ledger entry
+    if renewal_data["payment_type"] == "agency":
+        project = await db.projects.find_one({"id": domain["project_id"]})
+        if project:
+            ledger_entry = CustomerLedger(
+                customer_id=project["customer_id"],
+                transaction_type="debit",
+                amount=renewal_data["amount"],
+                description=f"Domain renewal for {domain['domain_name']}",
+                reference_type="domain",
+                reference_id=domain_id
+            )
+            
+            customer_balance = await get_customer_balance(project["customer_id"])
+            ledger_entry.balance = customer_balance - renewal_data["amount"]
+            
+            await db.ledger.insert_one(ledger_entry.dict())
+    
+    return {"message": "Domain renewed successfully"}
+
+async def get_customer_balance(customer_id: str):
+    """Calculate customer balance from ledger"""
+    ledger_entries = await db.ledger.find({"customer_id": customer_id}).to_list(1000)
+    balance = 0.0
+    for entry in ledger_entries:
+        if entry["transaction_type"] == "credit":
+            balance += entry["amount"]
+        else:
+            balance -= entry["amount"]
+    return balance
+
+async def update_project_payment(project_id: str, amount: float):
+    """Update project payment status"""
+    project = await db.projects.find_one({"id": project_id})
+    if project:
+        new_paid_amount = project.get("paid_amount", 0) + amount
+        total_amount = project["amount"]
+        
+        if new_paid_amount >= total_amount:
+            payment_status = "paid"
+        elif new_paid_amount > 0:
+            payment_status = "partial"
+        else:
+            payment_status = "pending"
+        
+        await db.projects.update_one(
+            {"id": project_id},
+            {"$set": {
+                "paid_amount": new_paid_amount,
+                "payment_status": payment_status
+            }}
+        )
+
+async def update_amc_payment(amc_project_id: str):
+    """Update AMC payment and extend for next year"""
+    # This would extend the AMC for another year
+    # Implementation depends on how AMC is stored
+    pass
+
+@api_router.get("/dashboard/customer-balances")
+async def get_all_customer_balances():
+    """Get balance summary for all customers"""
+    customers = await db.customers.find().to_list(1000)
+    balances = []
+    
+    for customer in customers:
+        balance = await get_customer_balance(customer["id"])
+        balances.append({
+            "customer_id": customer["id"],
+            "customer_name": customer["name"],
+            "balance": balance
+        })
+    
+    return balances
+
 @api_router.get("/")
 async def root():
     return {"message": "Agency Management System API"}
