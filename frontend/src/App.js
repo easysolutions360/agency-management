@@ -228,6 +228,25 @@ const App = () => {
     }
   };
 
+  // Product Master API calls
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`${API}/products`);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchTaxGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/tax-groups`);
+      setTaxGroups(response.data);
+    } catch (error) {
+      console.error("Error fetching tax groups:", error);
+    }
+  };
+
   const viewCustomerLedger = async (customerId, customerName) => {
     setSelectedCustomer({ id: customerId, name: customerName });
     setLedgerCurrentPage(1); // Reset to first page
