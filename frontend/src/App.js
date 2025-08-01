@@ -1412,6 +1412,36 @@ const App = () => {
                     />
                   </>
                 )}
+                {editingType === "product" && (
+                  <>
+                    <FormInput
+                      label="Product Name"
+                      value={editingItem.product_name}
+                      onChange={(e) => setEditingItem({...editingItem, product_name: e.target.value})}
+                    />
+                    <FormInput
+                      label="HSN Code"
+                      value={editingItem.hsn_code}
+                      onChange={(e) => setEditingItem({...editingItem, hsn_code: e.target.value})}
+                    />
+                    <FormInput
+                      label="Tax Group"
+                      value={editingItem.tax_group}
+                      onChange={(e) => setEditingItem({...editingItem, tax_group: e.target.value})}
+                      options={taxGroups.map(tax => ({
+                        value: tax.value,
+                        label: tax.label
+                      }))}
+                    />
+                    <FormInput
+                      label="Sale Price (₹)"
+                      type="number"
+                      step="0.01"
+                      value={editingItem.sale_price}
+                      onChange={(e) => setEditingItem({...editingItem, sale_price: e.target.value})}
+                    />
+                  </>
+                )}
                 <div className="flex gap-2">
                   <button
                     type="submit"
