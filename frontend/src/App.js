@@ -88,7 +88,19 @@ const App = () => {
     name: "",
     phone: "",
     email: "",
-    address: ""
+    address: "",
+    company_name: "",
+    gst_no: ""
+  });
+
+  // Product master states
+  const [products, setProducts] = useState([]);
+  const [taxGroups, setTaxGroups] = useState([]);
+  const [productForm, setProductForm] = useState({
+    product_name: "",
+    hsn_code: "",
+    tax_group: "",
+    sale_price: ""
   });
 
   const [projectForm, setProjectForm] = useState({
