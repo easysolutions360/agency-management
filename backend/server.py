@@ -190,6 +190,19 @@ class CustomerPaymentSummary(BaseModel):
     credit_balance: float
     recent_payments: List[dict]
 
+class BusinessFinancialSummary(BaseModel):
+    total_projects: int
+    total_customers: int
+    total_project_value: float
+    total_received: float
+    total_outstanding: float
+    total_customer_credit: float
+    net_revenue: float
+    project_completion_rate: float
+    payment_collection_rate: float
+    top_customers: List[dict]
+    recent_payments: List[dict]
+
 # Customer Routes
 @api_router.post("/customers", response_model=Customer)
 async def create_customer(customer: CustomerCreate):
