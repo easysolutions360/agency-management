@@ -2365,6 +2365,174 @@ def test_domain_renewal_fixed_functionality():
     
     return True
 
+def test_business_financial_summary():
+    """Test Business Financial Summary endpoint for dashboard"""
+    print_test_header("Business Financial Summary")
+    
+    print("\n📊 Testing Business Financial Summary endpoint...")
+    try:
+        response = requests.get(f"{API_URL}/dashboard/business-financial-summary")
+        if response.status_code == 200:
+            summary = response.json()
+            
+            # Verify required fields according to BusinessFinancialSummary model
+            required_fields = [
+                'total_projects', 'total_customers', 'total_project_value', 
+                'total_received', 'total_outstanding', 'total_customer_credit',
+                'net_revenue', 'project_completion_rate', 'payment_collection_rate',
+                'top_customers', 'recent_payments'
+            ]
+            
+            missing_fields = [field for field in required_fields if field not in summary]
+            if missing_fields:
+                print_error(f"Business financial summary missing fields: {missing_fields}")
+                return False
+            
+            # Verify data types and structure
+            print_success("✅ All required fields present in business financial summary")
+            
+            # Test numeric fields
+            numeric_fields = ['total_projects', 'total_customers', 'total_project_value', 
+                            'total_received', 'total_outstanding', 'total_customer_credit',
+                            'net_revenue', 'project_completion_rate', 'payment_collection_rate']
+            
+            for field in numeric_fields:
+                if not isinstance(summary[field], (int, float)):
+                    print_error(f"Field {field} should be numeric, got {type(summary[field])}")
+                    return False
+            
+            print_success("✅ All numeric fields have correct data types")
+            
+            # Verify calculations make sense
+            total_project_value = summary['total_project_value']
+            total_received = summary['total_received']
+            total_outstanding = summary['total_outstanding']
+            
+            # Outstanding should equal project value minus received
+            expected_outstanding = total_project_value - total_received
+            if abs(expected_outstanding - total_outstanding) < 0.01:  # Allow small floating point differences
+                print_success("✅ Outstanding amount calculation is correct")
+            else:
+                print_error(f"Outstanding calculation error: Expected {expected_outstanding}, got {total_outstanding}")
+                return False
+            
+            # Verify completion rate calculation
+            if total_project_value > 0:
+                expected_completion_rate = (total_received / total_project_value) * 100
+                if abs(expected_completion_rate - summary['project_completion_rate']) < 0.01:
+                    print_success("✅ Project completion rate calculation is correct")
+                else:
+                    print_error(f"Completion rate error: Expected {expected_completion_rate:.2f}%, got {summary['project_completion_rate']}%")
+                    return False
+            
+            # Verify top customers structure
+            top_customers = summary['top_customers']
+            if isinstance(top_customers, list):
+                print_success("✅ Top customers is a list")
+                
+                for customer in top_customers:
+                    customer_fields = ['customer_name', 'total_amount', 'project_count']
+                    missing_customer_fields = [field for field in customer_fields if field not in customer]
+                    if missing_customer_fields:
+                        print_error(f"Top customer missing fields: {missing_customer_fields}")
+                        return False
+                
+                if top_customers:
+                    print_success(f"✅ Top customers structure is correct ({len(top_customers)} customers)")
+                else:
+                    print_info("ℹ️  No top customers data (may be expected if no projects exist)")
+            else:
+                print_error("Top customers should be a list")
+                return False
+            
+            # Verify recent payments structure
+            recent_payments = summary['recent_payments']
+            if isinstance(recent_payments, list):
+                print_success("✅ Recent payments is a list")
+                
+                for payment in recent_payments:
+                    payment_fields = ['date', 'amount', 'type', 'description', 'customer_id']
+                    missing_payment_fields = [field for field in payment_fields if field not in payment]
+                    if missing_payment_fields:
+                        print_error(f"Recent payment missing fields: {missing_payment_fields}")
+                        return False
+                
+                if recent_payments:
+                    print_success(f"✅ Recent payments structure is correct ({len(recent_payments)} payments)")
+                else:
+                    print_info("ℹ️  No recent payments data (may be expected if no payments exist)")
+            else:
+                print_error("Recent payments should be a list")
+                return False
+            
+            # Display summary information
+            print_info(f"📈 Business Summary:")
+            print_info(f"   Total Projects: {summary['total_projects']}")
+            print_info(f"   Total Customers: {summary['total_customers']}")
+            print_info(f"   Total Project Value: ₹{summary['total_project_value']:,.2f}")
+            print_info(f"   Total Received: ₹{summary['total_received']:,.2f}")
+            print_info(f"   Total Outstanding: ₹{summary['total_outstanding']:,.2f}")
+            print_info(f"   Customer Credit Balance: ₹{summary['total_customer_credit']:,.2f}")
+            print_info(f"   Net Revenue: ₹{summary['net_revenue']:,.2f}")
+            print_info(f"   Project Completion Rate: {summary['project_completion_rate']:.2f}%")
+            print_info(f"   Payment Collection Rate: {summary['payment_collection_rate']:.2f}%")
+            print_info(f"   Top Customers Count: {len(summary['top_customers'])}")
+            print_info(f"   Recent Payments Count: {len(summary['recent_payments'])}")
+            
+            print_success("Business Financial Summary endpoint working correctly")
+            
+        else:
+            print_error(f"Failed to get business financial summary: {response.status_code}")
+            if response.status_code == 500:
+                try:
+                    error_detail = response.json()
+                    print_error(f"Server error details: {error_detail}")
+                except:
+                    print_error(f"Server error response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print_error(f"Error testing business financial summary: {str(e)}")
+        return False
+    
+    # Test integration with existing dashboard endpoints
+    print("\n🔗 Testing Integration with Other Dashboard Endpoints...")
+    try:
+        # Test that business summary integrates well with other dashboard data
+        dashboard_projects_response = requests.get(f"{API_URL}/dashboard/projects")
+        customer_balances_response = requests.get(f"{API_URL}/dashboard/customer-balances")
+        
+        if dashboard_projects_response.status_code == 200 and customer_balances_response.status_code == 200:
+            dashboard_projects = dashboard_projects_response.json()
+            customer_balances = customer_balances_response.json()
+            
+            # Verify consistency between endpoints
+            if len(dashboard_projects) == summary['total_projects']:
+                print_success("✅ Project count consistent between dashboard endpoints")
+            else:
+                print_error(f"Project count mismatch: Dashboard={len(dashboard_projects)}, Summary={summary['total_projects']}")
+                return False
+            
+            # Calculate total project value from dashboard projects
+            dashboard_total_value = sum(p.get('amount', 0) for p in dashboard_projects)
+            if abs(dashboard_total_value - summary['total_project_value']) < 0.01:
+                print_success("✅ Total project value consistent between endpoints")
+            else:
+                print_error(f"Project value mismatch: Dashboard={dashboard_total_value}, Summary={summary['total_project_value']}")
+                return False
+            
+            print_success("✅ Business financial summary integrates well with other dashboard endpoints")
+        else:
+            print_error("Failed to retrieve other dashboard endpoints for integration testing")
+            return False
+            
+    except Exception as e:
+        print_error(f"Error testing dashboard integration: {str(e)}")
+        return False
+    
+    print_success("Business Financial Summary tests completed successfully")
+    return True
+
 def main():
     """Run all backend API tests"""
     print("🚀 Starting Comprehensive Backend API Testing")
@@ -2392,6 +2560,7 @@ def main():
         ("Project End Date Non-Mandatory Implementation", test_project_end_date_non_mandatory),
         ("Customer Ledger Entry on Project Creation", test_customer_ledger_on_project_creation),
         ("Enhanced Customer Ledger Functionality", test_enhanced_customer_ledger_functionality),
+        ("Business Financial Summary", test_business_financial_summary),
         ("FIXED Domain Renewal Functionality - Review Testing", test_domain_renewal_fixed_functionality),
         ("🎯 DOMAIN RENEWAL REVIEW - COMPREHENSIVE", test_domain_renewal_review_comprehensive),
         ("Edge Cases and Error Handling", test_edge_cases)
