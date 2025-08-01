@@ -149,6 +149,27 @@ class CustomerLedgerCreate(BaseModel):
     reference_type: str
     reference_id: str
 
+# Product Master Models
+class Product(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    product_name: str
+    hsn_code: str
+    tax_percentage: float
+    sale_price: float
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class ProductCreate(BaseModel):
+    product_name: str
+    hsn_code: str
+    tax_percentage: float
+    sale_price: float
+
+class ProductUpdate(BaseModel):
+    product_name: Optional[str] = None
+    hsn_code: Optional[str] = None
+    tax_percentage: Optional[float] = None
+    sale_price: Optional[float] = None
+
 class ProjectWithDetails(BaseModel):
     id: str
     customer_id: str
