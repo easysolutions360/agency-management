@@ -1428,12 +1428,22 @@ const App = () => {
                           >
                             Delete
                           </button>
-                          <button
-                            onClick={() => openRenewalModal(domain)}
-                            className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
-                          >
-                            Renew
-                          </button>
+                          {isDomainDueForRenewal(domain) ? (
+                            <button
+                              onClick={() => openRenewalModal(domain)}
+                              className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                            >
+                              Renew
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="bg-gray-400 text-white px-2 py-1 rounded text-sm cursor-not-allowed opacity-50"
+                              title="Domain renewal available only within 30 days of expiry"
+                            >
+                              Renew
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
