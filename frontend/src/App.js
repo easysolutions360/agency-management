@@ -699,9 +699,10 @@ const App = () => {
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Dashboard Overview</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Business Dashboard</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Business Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold text-blue-800">Total Customers</h3>
             <p className="text-3xl font-bold text-blue-600">{customers.length}</p>
@@ -714,7 +715,71 @@ const App = () => {
             <h3 className="text-lg font-semibold text-red-800">Expiring Domains</h3>
             <p className="text-3xl font-bold text-red-600">{expiringDomains.length}</p>
           </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-purple-800">AMC Due</h3>
+            <p className="text-3xl font-bold text-purple-600">{amcProjects.length}</p>
+          </div>
         </div>
+
+        {/* Financial Summary Cards */}
+        {businessFinancials && (
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">💰 Financial Summary</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                <h4 className="text-sm font-semibold text-emerald-800">Total Project Value</h4>
+                <p className="text-2xl font-bold text-emerald-600">₹{businessFinancials.total_project_value.toLocaleString()}</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h4 className="text-sm font-semibold text-green-800">Total Received</h4>
+                <p className="text-2xl font-bold text-green-600">₹{businessFinancials.total_received.toLocaleString()}</p>
+                <p className="text-xs text-green-700">{businessFinancials.payment_collection_rate}% collection rate</p>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h4 className="text-sm font-semibold text-orange-800">Outstanding Amount</h4>
+                <p className="text-2xl font-bold text-orange-600">₹{businessFinancials.total_outstanding.toLocaleString()}</p>
+              </div>
+              <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                <h4 className="text-sm font-semibold text-cyan-800">Customer Credit</h4>
+                <p className="text-2xl font-bold text-cyan-600">₹{businessFinancials.total_customer_credit.toLocaleString()}</p>
+              </div>
+            </div>
+            
+            {/* Net Revenue & Collection Rate */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                <h4 className="text-lg font-semibold text-indigo-800">Net Revenue</h4>
+                <p className="text-3xl font-bold text-indigo-600">₹{businessFinancials.net_revenue.toLocaleString()}</p>
+                <p className="text-sm text-indigo-700">Total received + customer credits</p>
+              </div>
+              <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                <h4 className="text-lg font-semibold text-teal-800">Project Completion</h4>
+                <p className="text-3xl font-bold text-teal-600">{businessFinancials.project_completion_rate}%</p>
+                <p className="text-sm text-teal-700">Revenue collected vs total project value</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top Customers */}
+        {businessFinancials && businessFinancials.top_customers && businessFinancials.top_customers.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">🏆 Top Customers by Project Value</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="space-y-2">
+                {businessFinancials.top_customers.map((customer, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 px-3 bg-white rounded border">
+                    <div>
+                      <span className="font-medium">{customer.customer_name}</span>
+                      <span className="text-sm text-gray-600 ml-2">({customer.project_count} projects)</span>
+                    </div>
+                    <span className="font-bold text-green-600">₹{customer.total_amount.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {expiringDomains.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -745,6 +810,7 @@ const App = () => {
         )}
 
         <div className="overflow-x-auto">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">📊 Recent Projects</h3>
           <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-50">
