@@ -313,7 +313,7 @@ const App = () => {
     e.preventDefault();
     try {
       await axios.post(`${API}/customers`, customerForm);
-      setCustomerForm({ name: "", phone: "", email: "", address: "" });
+      setCustomerForm({ name: "", phone: "", email: "", address: "", company_name: "", gst_no: "" });
       fetchCustomers();
       alert("Customer added successfully!");
     } catch (error) {
