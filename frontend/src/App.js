@@ -198,6 +198,15 @@ const App = () => {
     }
   };
 
+  const fetchBusinessFinancials = async () => {
+    try {
+      const response = await axios.get(`${API}/dashboard/business-financial-summary`);
+      setBusinessFinancials(response.data);
+    } catch (error) {
+      console.error("Error fetching business financials:", error);
+    }
+  };
+
   const fetchCustomerLedger = async (customerId) => {
     try {
       const response = await axios.get(`${API}/ledger/customer/${customerId}`);
