@@ -1081,6 +1081,103 @@ const App = () => {
     </div>
   );
 
+  const renderProductMaster = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Product Master</h2>
+      
+      {/* Product Form */}
+      <form onSubmit={handleProductSubmit} className="space-y-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormInput
+            label="Product Name"
+            value={productForm.product_name}
+            onChange={(e) => setProductForm({ ...productForm, product_name: e.target.value })}
+          />
+          <FormInput
+            label="HSN Code"
+            value={productForm.hsn_code}
+            onChange={(e) => setProductForm({ ...productForm, hsn_code: e.target.value })}
+          />
+          <FormInput
+            label="Tax Group"
+            value={productForm.tax_group}
+            onChange={(e) => setProductForm({ ...productForm, tax_group: e.target.value })}
+            options={taxGroups.map(tax => ({
+              value: tax.value,
+              label: tax.label
+            }))}
+          />
+          <FormInput
+            label="Sale Price (₹)"
+            type="number"
+            step="0.01"
+            value={productForm.sale_price}
+            onChange={(e) => setProductForm({ ...productForm, sale_price: e.target.value })}
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+        >
+          Add Product
+        </button>
+      </form>
+
+      {/* Products List */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">All Products</h3>
+        {products.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-4 py-2 text-left">Product Name</th>
+                  <th className="px-4 py-2 text-left">HSN Code</th>
+                  <th className="px-4 py-2 text-left">Tax Group</th>
+                  <th className="px-4 py-2 text-left">Tax %</th>
+                  <th className="px-4 py-2 text-left">Sale Price</th>
+                  <th className="px-4 py-2 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product, index) => (
+                  <tr key={product.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-4 py-2">{product.product_name}</td>
+                    <td className="px-4 py-2">{product.hsn_code}</td>
+                    <td className="px-4 py-2">{product.tax_group}</td>
+                    <td className="px-4 py-2">{product.tax_percentage}%</td>
+                    <td className="px-4 py-2">₹{product.sale_price}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingItem(product);
+                            setEditingType('product');
+                          }}
+                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteProduct(product.id)}
+                          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-gray-500">No products found. Add a product to get started.</p>
+        )}
+      </div>
+    </div>
+  );
+
   const renderReports = () => {
     // Get current data based on active reports tab
     let currentData = [];
