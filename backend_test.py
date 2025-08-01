@@ -2393,6 +2393,7 @@ def main():
         ("Customer Ledger Entry on Project Creation", test_customer_ledger_on_project_creation),
         ("Enhanced Customer Ledger Functionality", test_enhanced_customer_ledger_functionality),
         ("FIXED Domain Renewal Functionality - Review Testing", test_domain_renewal_fixed_functionality),
+        ("🎯 DOMAIN RENEWAL REVIEW - COMPREHENSIVE", test_domain_renewal_review_comprehensive),
         ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
