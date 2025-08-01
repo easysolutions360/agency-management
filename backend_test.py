@@ -1510,6 +1510,438 @@ def test_edge_cases():
     print_success("Edge Cases and Error Handling tests completed")
     return True
 
+def test_domain_renewal_review_comprehensive():
+    """
+    COMPREHENSIVE DOMAIN RENEWAL REVIEW TEST
+    Tests the specific domain renewal functionality as requested in the review:
+    1. /domains-due-renewal endpoint returns proper upcoming domain renewal data
+    2. /domain-renewal/{domain_id} works correctly for both client and agency payment types
+    3. Verify that removing actions from Reports didn't break core functionality
+    """
+    print_test_header("🎯 DOMAIN RENEWAL REVIEW - COMPREHENSIVE TESTING")
+    
+    # Create test data specifically for domain renewal testing
+    print("\n📋 Setting up test data for domain renewal review...")
+    
+    # Create test customer for domain renewal
+    renewal_customer = {
+        "name": "Domain Renewal Test Corp",
+        "phone": "+1-555-RENEW",
+        "email": "renewal@testcorp.com",
+        "address": "123 Renewal Street, Test City, TC 12345"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/customers", json=renewal_customer)
+        if response.status_code == 200:
+            test_customer = response.json()
+            print_success(f"Created test customer: {test_customer['name']}")
+        else:
+            print_error(f"Failed to create test customer: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating test customer: {str(e)}")
+        return False
+    
+    # Create test project for domains
+    renewal_project = {
+        "customer_id": test_customer['id'],
+        "type": "Domain Renewal Test Project",
+        "name": "Website with Multiple Domains",
+        "amount": 10000.00,
+        "amc_amount": 2000.00,
+        "start_date": "2024-01-01",
+        "end_date": "2024-06-01"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/projects", json=renewal_project)
+        if response.status_code == 200:
+            test_project = response.json()
+            print_success(f"Created test project: {test_project['name']}")
+        else:
+            print_error(f"Failed to create test project: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating test project: {str(e)}")
+        return False
+    
+    # Create test domains with different expiry scenarios
+    current_date = datetime.now().date()
+    
+    test_domains_data = [
+        {
+            "project_id": test_project['id'],
+            "domain_name": "expired-domain.com",
+            "hosting_provider": "Test Provider 1",
+            "username": "expired_user",
+            "password": "ExpiredPass123!",
+            "validity_date": (current_date - timedelta(days=10)).isoformat(),  # Expired 10 days ago
+            "renewal_amount": 1800.00
+        },
+        {
+            "project_id": test_project['id'],
+            "domain_name": "due-soon-domain.com", 
+            "hosting_provider": "Test Provider 2",
+            "username": "due_user",
+            "password": "DuePass456!",
+            "validity_date": (current_date + timedelta(days=15)).isoformat(),  # Due in 15 days
+            "renewal_amount": 2200.00
+        },
+        {
+            "project_id": test_project['id'],
+            "domain_name": "not-due-domain.com",
+            "hosting_provider": "Test Provider 3", 
+            "username": "notdue_user",
+            "password": "NotDuePass789!",
+            "validity_date": (current_date + timedelta(days=200)).isoformat(),  # Due in 200 days
+            "renewal_amount": 1500.00
+        }
+    ]
+    
+    created_domains = []
+    for domain_data in test_domains_data:
+        try:
+            response = requests.post(f"{API_URL}/domains", json=domain_data)
+            if response.status_code == 200:
+                domain = response.json()
+                created_domains.append(domain)
+                print_success(f"Created test domain: {domain['domain_name']}")
+            else:
+                print_error(f"Failed to create domain {domain_data['domain_name']}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error creating domain {domain_data['domain_name']}: {str(e)}")
+            return False
+    
+    # TEST 1: Verify /domains-due-renewal endpoint returns proper data
+    print("\n🔍 TEST 1: Testing /domains-due-renewal endpoint...")
+    try:
+        response = requests.get(f"{API_URL}/domains-due-renewal")
+        if response.status_code == 200:
+            due_domains = response.json()
+            print_success(f"Retrieved {len(due_domains)} domains due for renewal")
+            
+            # Verify data structure
+            required_fields = ['domain_id', 'domain_name', 'hosting_provider', 'validity_date', 
+                             'days_until_expiry', 'renewal_amount', 'project_name', 'customer_name', 
+                             'customer_id', 'is_expired']
+            
+            for domain in due_domains:
+                missing_fields = [field for field in required_fields if field not in domain]
+                if missing_fields:
+                    print_error(f"Domain missing required fields: {missing_fields}")
+                    return False
+            
+            # Verify filtering logic - should include expired and due-soon domains, exclude not-due domains
+            expired_found = any(d['domain_name'] == 'expired-domain.com' for d in due_domains)
+            due_soon_found = any(d['domain_name'] == 'due-soon-domain.com' for d in due_domains)
+            not_due_found = any(d['domain_name'] == 'not-due-domain.com' for d in due_domains)
+            
+            if expired_found:
+                print_success("✅ Expired domain correctly included in results")
+            else:
+                print_error("❌ Expired domain not found in results")
+                return False
+            
+            if due_soon_found:
+                print_success("✅ Due-soon domain correctly included in results")
+            else:
+                print_error("❌ Due-soon domain not found in results")
+                return False
+            
+            if not not_due_found:
+                print_success("✅ Not-due domain correctly excluded from results")
+            else:
+                print_error("❌ Not-due domain incorrectly included in results")
+                return False
+            
+            # Verify is_expired flag
+            for domain in due_domains:
+                if domain['domain_name'] == 'expired-domain.com':
+                    if domain['is_expired']:
+                        print_success("✅ Expired domain correctly flagged as expired")
+                    else:
+                        print_error("❌ Expired domain not flagged as expired")
+                        return False
+                elif domain['domain_name'] == 'due-soon-domain.com':
+                    if not domain['is_expired']:
+                        print_success("✅ Due-soon domain correctly not flagged as expired")
+                    else:
+                        print_error("❌ Due-soon domain incorrectly flagged as expired")
+                        return False
+            
+            print_success("✅ /domains-due-renewal endpoint working correctly")
+        else:
+            print_error(f"Failed to get domains due for renewal: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing domains due for renewal: {str(e)}")
+        return False
+    
+    # TEST 2: Test domain renewal with AGENCY payment type
+    print("\n🏢 TEST 2: Testing domain renewal with AGENCY payment type...")
+    expired_domain = created_domains[0]  # expired-domain.com
+    
+    agency_renewal_request = {
+        "new_validity_date": (current_date + timedelta(days=365)).isoformat(),  # Custom validity date
+        "amount": 1800.00,  # Custom renewal amount
+        "payment_type": "agency",
+        "notes": "Agency pays for domain renewal - customer owes money"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/{expired_domain['id']}", json=agency_renewal_request)
+        if response.status_code == 200:
+            result = response.json()
+            print_success(f"Agency renewal successful: {result.get('message')}")
+            
+            # Verify domain was updated
+            domain_response = requests.get(f"{API_URL}/domains/{expired_domain['id']}")
+            if domain_response.status_code == 200:
+                updated_domain = domain_response.json()
+                
+                # Check validity date
+                if updated_domain['validity_date'] == agency_renewal_request['new_validity_date']:
+                    print_success("✅ Domain validity date updated to custom date")
+                else:
+                    print_error(f"❌ Domain validity date not updated correctly: {updated_domain['validity_date']}")
+                    return False
+                
+                # Check renewal amount
+                if updated_domain['renewal_amount'] == agency_renewal_request['amount']:
+                    print_success("✅ Domain renewal amount updated to custom amount")
+                else:
+                    print_error(f"❌ Domain renewal amount not updated correctly: {updated_domain['renewal_amount']}")
+                    return False
+                
+                # Check payment type
+                if updated_domain['payment_type'] == 'agency':
+                    print_success("✅ Domain payment type set to agency")
+                else:
+                    print_error(f"❌ Domain payment type not set correctly: {updated_domain['payment_type']}")
+                    return False
+            else:
+                print_error("Failed to retrieve updated domain")
+                return False
+            
+            # Verify customer ledger entry was created (DEBIT - customer owes money)
+            ledger_response = requests.get(f"{API_URL}/ledger/customer/{test_customer['id']}")
+            if ledger_response.status_code == 200:
+                ledger_entries = ledger_response.json()
+                
+                agency_debt_found = False
+                for entry in ledger_entries:
+                    if (entry.get('transaction_type') == 'debit' and 
+                        entry.get('reference_type') == 'domain_renewal' and
+                        entry.get('reference_id') == expired_domain['id'] and
+                        entry.get('amount') == 1800.00):
+                        agency_debt_found = True
+                        print_success("✅ DEBIT entry created in customer ledger (customer owes money)")
+                        break
+                
+                if not agency_debt_found:
+                    print_error("❌ Customer debt entry not found in ledger")
+                    return False
+            else:
+                print_error("Failed to retrieve customer ledger")
+                return False
+            
+            # Verify payment record was created
+            payments_response = requests.get(f"{API_URL}/payments/customer/{test_customer['id']}")
+            if payments_response.status_code == 200:
+                payments = payments_response.json()
+                
+                agency_payment_found = False
+                for payment in payments:
+                    if (payment.get('type') == 'domain_renewal_agency' and
+                        payment.get('reference_id') == expired_domain['id'] and
+                        payment.get('amount') == 1800.00 and
+                        payment.get('status') == 'pending'):
+                        agency_payment_found = True
+                        print_success("✅ Pending payment record created with correct amount and status")
+                        break
+                
+                if not agency_payment_found:
+                    print_error("❌ Agency payment record not found")
+                    return False
+            else:
+                print_error("Failed to retrieve customer payments")
+                return False
+            
+            print_success("✅ Agency payment type domain renewal working correctly")
+        else:
+            print_error(f"Failed to renew domain with agency payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing agency payment renewal: {str(e)}")
+        return False
+    
+    # TEST 3: Test domain renewal with CLIENT payment type
+    print("\n👤 TEST 3: Testing domain renewal with CLIENT payment type...")
+    due_soon_domain = created_domains[1]  # due-soon-domain.com
+    
+    client_renewal_request = {
+        "new_validity_date": (current_date + timedelta(days=400)).isoformat(),  # Custom validity date
+        "amount": 2200.00,  # Custom renewal amount
+        "payment_type": "client",
+        "notes": "Client pays directly for domain renewal"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/{due_soon_domain['id']}", json=client_renewal_request)
+        if response.status_code == 200:
+            result = response.json()
+            print_success(f"Client renewal successful: {result.get('message')}")
+            
+            # Verify domain was updated
+            domain_response = requests.get(f"{API_URL}/domains/{due_soon_domain['id']}")
+            if domain_response.status_code == 200:
+                updated_domain = domain_response.json()
+                
+                # Check validity date
+                if updated_domain['validity_date'] == client_renewal_request['new_validity_date']:
+                    print_success("✅ Domain validity date updated to custom date")
+                else:
+                    print_error(f"❌ Domain validity date not updated correctly: {updated_domain['validity_date']}")
+                    return False
+                
+                # Check renewal amount
+                if updated_domain['renewal_amount'] == client_renewal_request['amount']:
+                    print_success("✅ Domain renewal amount updated to custom amount")
+                else:
+                    print_error(f"❌ Domain renewal amount not updated correctly: {updated_domain['renewal_amount']}")
+                    return False
+                
+                # Check payment type
+                if updated_domain['payment_type'] == 'client':
+                    print_success("✅ Domain payment type set to client")
+                else:
+                    print_error(f"❌ Domain payment type not set correctly: {updated_domain['payment_type']}")
+                    return False
+            else:
+                print_error("Failed to retrieve updated domain")
+                return False
+            
+            # Verify NO ledger entry was created (client pays directly)
+            ledger_response = requests.get(f"{API_URL}/ledger/customer/{test_customer['id']}")
+            if ledger_response.status_code == 200:
+                ledger_entries = ledger_response.json()
+                
+                client_debt_found = False
+                for entry in ledger_entries:
+                    if (entry.get('reference_type') == 'domain_renewal' and
+                        entry.get('reference_id') == due_soon_domain['id']):
+                        client_debt_found = True
+                        break
+                
+                if not client_debt_found:
+                    print_success("✅ NO ledger entry created (client pays directly)")
+                else:
+                    print_error("❌ Unexpected ledger entry found for client payment")
+                    return False
+            else:
+                print_error("Failed to retrieve customer ledger")
+                return False
+            
+            # Verify completed payment record was created
+            payments_response = requests.get(f"{API_URL}/payments/customer/{test_customer['id']}")
+            if payments_response.status_code == 200:
+                payments = payments_response.json()
+                
+                client_payment_found = False
+                for payment in payments:
+                    if (payment.get('type') == 'domain_renewal_client' and
+                        payment.get('reference_id') == due_soon_domain['id'] and
+                        payment.get('amount') == 2200.00 and
+                        payment.get('status') == 'completed'):
+                        client_payment_found = True
+                        print_success("✅ Completed payment record created with correct amount and status")
+                        break
+                
+                if not client_payment_found:
+                    print_error("❌ Client payment record not found")
+                    return False
+            else:
+                print_error("Failed to retrieve customer payments")
+                return False
+            
+            print_success("✅ Client payment type domain renewal working correctly")
+        else:
+            print_error(f"Failed to renew domain with client payment: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing client payment renewal: {str(e)}")
+        return False
+    
+    # TEST 4: Test API endpoint with comprehensive request format
+    print("\n🔧 TEST 4: Testing API endpoint with comprehensive request format...")
+    not_due_domain = created_domains[2]  # not-due-domain.com
+    
+    comprehensive_request = {
+        "new_validity_date": (current_date + timedelta(days=500)).isoformat(),
+        "amount": 2500.00,
+        "payment_type": "agency",
+        "notes": "Comprehensive API test with all parameters"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/{not_due_domain['id']}", json=comprehensive_request)
+        if response.status_code == 200:
+            result = response.json()
+            
+            # Verify response structure
+            if 'message' in result and 'new_validity_date' in result:
+                print_success("✅ API endpoint returns success response with required fields")
+                
+                if result['new_validity_date'] == comprehensive_request['new_validity_date']:
+                    print_success("✅ Response contains correct new_validity_date")
+                else:
+                    print_error("❌ Response new_validity_date mismatch")
+                    return False
+            else:
+                print_error("❌ API response missing required fields")
+                return False
+        else:
+            print_error(f"Failed comprehensive API test: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing comprehensive API request: {str(e)}")
+        return False
+    
+    # TEST 5: Test error handling for non-existent domain
+    print("\n❌ TEST 5: Testing error handling for non-existent domain...")
+    try:
+        response = requests.post(f"{API_URL}/domain-renewal/non-existent-domain-id", json={"payment_type": "client"})
+        if response.status_code == 404:
+            print_success("✅ Correctly returns 404 for non-existent domain")
+        else:
+            print_error(f"Expected 404 for non-existent domain, got {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing non-existent domain: {str(e)}")
+        return False
+    
+    # Cleanup test data
+    print("\n🧹 Cleaning up test data...")
+    try:
+        # Delete test domains
+        for domain in created_domains:
+            requests.delete(f"{API_URL}/domains/{domain['id']}")
+        
+        # Delete test project
+        requests.delete(f"{API_URL}/projects/{test_project['id']}")
+        
+        # Delete test customer
+        requests.delete(f"{API_URL}/customers/{test_customer['id']}")
+        
+        print_success("✅ Test data cleaned up successfully")
+    except Exception as e:
+        print_info(f"Cleanup completed with note: {str(e)}")
+    
+    print_success("🎯 DOMAIN RENEWAL REVIEW - ALL TESTS PASSED!")
+    return True
+
 def test_cleanup():
     """Clean up test data (optional - for clean testing environment)"""
     print_test_header("Test Data Cleanup")
