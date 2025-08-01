@@ -682,7 +682,7 @@ async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
             customer_id=project["customer_id"],
             type="domain_renewal_agency",
             reference_id=domain_id,
-            amount=domain["renewal_amount"],
+            amount=renewal_amount,
             description=f"Domain renewal for {domain['domain_name']} (Agency paid - awaiting client payment)",
             status="pending"
         )
