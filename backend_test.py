@@ -1960,6 +1960,7 @@ def main():
         ("Project End Date Non-Mandatory Implementation", test_project_end_date_non_mandatory),
         ("Customer Ledger Entry on Project Creation", test_customer_ledger_on_project_creation),
         ("Enhanced Customer Ledger Functionality", test_enhanced_customer_ledger_functionality),
+        ("FIXED Domain Renewal Functionality - Review Testing", test_domain_renewal_fixed_functionality),
         ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
