@@ -884,6 +884,12 @@ const App = () => {
             onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })}
           />
           <FormInput
+            label="Company Name"
+            value={customerForm.company_name}
+            onChange={(e) => setCustomerForm({ ...customerForm, company_name: e.target.value })}
+            required={false}
+          />
+          <FormInput
             label="Phone Number"
             type="tel"
             value={customerForm.phone}
@@ -894,6 +900,12 @@ const App = () => {
             type="email"
             value={customerForm.email}
             onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })}
+          />
+          <FormInput
+            label="GST Number"
+            value={customerForm.gst_no}
+            onChange={(e) => setCustomerForm({ ...customerForm, gst_no: e.target.value })}
+            required={false}
           />
           <FormInput
             label="Address"
