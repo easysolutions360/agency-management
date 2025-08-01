@@ -585,6 +585,19 @@ const App = () => {
     }
   };
 
+  const deleteProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await axios.delete(`${API}/products/${productId}`);
+        fetchProducts();
+        alert("Product deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        alert("Error deleting product");
+      }
+    }
+  };
+
   // Edit functions
   const handleEditSubmit = async (e) => {
     e.preventDefault();
