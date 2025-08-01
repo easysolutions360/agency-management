@@ -1860,6 +1860,51 @@ const App = () => {
                 </tbody>
               </table>
             )}
+
+            {reportsTab === "products" && (
+              <table className="w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Product Name</th>
+                    <th className="px-4 py-2 text-left">HSN Code</th>
+                    <th className="px-4 py-2 text-left">Tax Group</th>
+                    <th className="px-4 py-2 text-left">Tax Percentage</th>
+                    <th className="px-4 py-2 text-left">Sale Price</th>
+                    <th className="px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map((product) => (
+                    <tr key={product.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium">{product.product_name}</td>
+                      <td className="px-4 py-2">{product.hsn_code}</td>
+                      <td className="px-4 py-2">{product.tax_group}</td>
+                      <td className="px-4 py-2">{product.tax_percentage}%</td>
+                      <td className="px-4 py-2">₹{product.sale_price}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingItem(product);
+                              setEditingType("product");
+                            }}
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteProduct(product.id)}
+                            className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Empty State */}
