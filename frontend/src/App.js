@@ -1944,6 +1944,7 @@ const App = () => {
         {activeTab === "customers" && renderCustomerForm()}
         {activeTab === "projects" && renderProjectForm()}
         {activeTab === "domains" && renderDomainForm()}
+        {activeTab === "products" && renderProductMaster()}
         {activeTab === "reports" && renderReports()}
         {activeTab === "amc" && renderAMC()}
         {activeTab === "ledger" && renderCustomerLedgerTab()}
