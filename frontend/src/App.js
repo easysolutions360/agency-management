@@ -360,19 +360,6 @@ const App = () => {
     }
   };
 
-  const deleteProduct = async (productId) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        await axios.delete(`${API}/products/${productId}`);
-        fetchProducts();
-        alert("Product deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting product:", error);
-        alert("Error deleting product");
-      }
-    }
-  };
-
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     try {
