@@ -1564,8 +1564,10 @@ const App = () => {
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="px-4 py-2 text-left">Name</th>
+                    <th className="px-4 py-2 text-left">Company Name</th>
                     <th className="px-4 py-2 text-left">Email</th>
                     <th className="px-4 py-2 text-left">Phone</th>
+                    <th className="px-4 py-2 text-left">GST Number</th>
                     <th className="px-4 py-2 text-left">Address</th>
                     <th className="px-4 py-2 text-left">Actions</th>
                   </tr>
@@ -1574,8 +1576,10 @@ const App = () => {
                   {paginatedData.map((customer) => (
                     <tr key={customer.id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-2 font-medium">{customer.name}</td>
+                      <td className="px-4 py-2">{customer.company_name || "-"}</td>
                       <td className="px-4 py-2">{customer.email}</td>
                       <td className="px-4 py-2">{customer.phone}</td>
+                      <td className="px-4 py-2">{customer.gst_no || "-"}</td>
                       <td className="px-4 py-2">{customer.address}</td>
                       <td className="px-4 py-2">
                         <div className="flex space-x-2">
