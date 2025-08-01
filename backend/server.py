@@ -160,7 +160,8 @@ class ProjectWithDetails(BaseModel):
 
 # New models for enhanced payment functionality
 class DomainRenewalRequest(BaseModel):
-    domain_id: str
+    new_validity_date: Optional[str] = None  # Allow custom validity date
+    amount: Optional[float] = None  # Allow custom renewal amount
     payment_type: str  # "client" or "agency"
     notes: str = ""
 
