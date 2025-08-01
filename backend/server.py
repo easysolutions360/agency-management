@@ -154,20 +154,21 @@ class Product(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     product_name: str
     hsn_code: str
-    tax_percentage: float
+    tax_group: str  # GST0, GST5, GST12, GST18, GST28
+    tax_percentage: float  # Will be set based on tax_group
     sale_price: float
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class ProductCreate(BaseModel):
     product_name: str
     hsn_code: str
-    tax_percentage: float
+    tax_group: str  # GST0, GST5, GST12, GST18, GST28
     sale_price: float
 
 class ProductUpdate(BaseModel):
     product_name: Optional[str] = None
     hsn_code: Optional[str] = None
-    tax_percentage: Optional[float] = None
+    tax_group: Optional[str] = None
     sale_price: Optional[float] = None
 
 class ProjectWithDetails(BaseModel):
