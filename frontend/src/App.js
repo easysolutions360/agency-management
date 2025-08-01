@@ -288,6 +288,7 @@ const App = () => {
     fetchDomainsForRenewal();
     fetchAmcProjects();
     fetchCustomerBalances();
+    fetchBusinessFinancials();
   }, []);
 
   useEffect(() => {
