@@ -1327,6 +1327,12 @@ const App = () => {
                       onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
                     />
                     <FormInput
+                      label="Company Name"
+                      value={editingItem.company_name || ""}
+                      onChange={(e) => setEditingItem({...editingItem, company_name: e.target.value})}
+                      required={false}
+                    />
+                    <FormInput
                       label="Phone"
                       value={editingItem.phone}
                       onChange={(e) => setEditingItem({...editingItem, phone: e.target.value})}
@@ -1335,6 +1341,12 @@ const App = () => {
                       label="Email"
                       value={editingItem.email}
                       onChange={(e) => setEditingItem({...editingItem, email: e.target.value})}
+                    />
+                    <FormInput
+                      label="GST Number"
+                      value={editingItem.gst_no || ""}
+                      onChange={(e) => setEditingItem({...editingItem, gst_no: e.target.value})}
+                      required={false}
                     />
                     <FormInput
                       label="Address"
