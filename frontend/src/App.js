@@ -338,6 +338,7 @@ const App = () => {
       });
       fetchProjects();
       fetchDashboardProjects();
+      fetchBusinessFinancials();
       alert("Project added successfully!");
     } catch (error) {
       console.error("Error adding project:", error);
