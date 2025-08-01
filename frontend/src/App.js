@@ -1463,7 +1463,6 @@ const App = () => {
                     <th className="px-4 py-2 text-left">Days Until Expiry</th>
                     <th className="px-4 py-2 text-left">Renewal Amount</th>
                     <th className="px-4 py-2 text-left">Status</th>
-                    <th className="px-4 py-2 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1493,34 +1492,6 @@ const App = () => {
                         }`}>
                           {domain.is_expired ? "Needs Renewal" : "Due Soon"}
                         </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingItem(domain);
-                              setEditingType("domain");
-                            }}
-                            className="bg-purple-500 text-white px-2 py-1 rounded text-sm hover:bg-purple-600"
-                            title="Edit domain details and renewal price"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDomainRenewal(domain, 'client')}
-                            className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
-                            title="Client pays for renewal"
-                          >
-                            Client Pays
-                          </button>
-                          <button
-                            onClick={() => handleDomainRenewal(domain, 'agency')}
-                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
-                            title="Agency pays (add to customer debt)"
-                          >
-                            Agency Pays
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))}
