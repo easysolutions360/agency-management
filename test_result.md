@@ -146,6 +146,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASSED: Bug Fix 3 - Domain Renewal testing completed successfully. Both client and agency payment types work correctly without errors. Client payment creates completed payment record, agency payment creates customer debt in ledger. Domain validity extended by 1 year in both cases. Payment types correctly stored and customer ledger entries created for agency payments."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE REVIEW TESTING COMPLETED: Successfully tested the FIXED Domain Renewal functionality as requested in review. All 3 scenarios verified: 1) AGENCY PAYS RENEWAL - Domain validity date updated to custom date (365 days), renewal amount updated to custom amount ($1800), DEBIT entry created in customer ledger (customer owes money), pending payment record created with correct amount and status. 2) CLIENT PAYS RENEWAL - Domain validity date updated to custom date (400 days), renewal amount updated to custom amount ($2200), NO ledger entry created (client pays directly), completed payment record created with correct amount and status. 3) API ENDPOINT TEST - POST /api/domain-renewal/{domain_id} endpoint accepts new request format with new_validity_date, amount, and payment_type parameters, returns success response with message and new_validity_date, handles errors correctly (404 for non-existent domains). All domain renewal functionality is working perfectly without errors."
 
   - task: "AMC Payment Processing with Auto-Renewal"
     implemented: true
