@@ -66,6 +66,7 @@ const App = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [editingType, setEditingType] = useState(null);
   const [customerBalances, setCustomerBalances] = useState([]);
+  const [businessFinancials, setBusinessFinancials] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerLedger, setCustomerLedger] = useState([]);
   const [paymentModal, setPaymentModal] = useState(false);
