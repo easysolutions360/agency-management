@@ -31,6 +31,8 @@ class Customer(BaseModel):
     phone: str
     email: str
     address: str
+    company_name: str = ""
+    gst_no: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class CustomerCreate(BaseModel):
@@ -38,12 +40,16 @@ class CustomerCreate(BaseModel):
     phone: str
     email: str
     address: str
+    company_name: str = ""
+    gst_no: str = ""
 
 class CustomerUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     address: Optional[str] = None
+    company_name: Optional[str] = None
+    gst_no: Optional[str] = None
 
 class Project(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
