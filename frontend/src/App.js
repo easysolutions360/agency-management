@@ -1211,6 +1211,8 @@ const App = () => {
       currentData = domainsForRenewal;
     } else if (reportsTab === "payments") {
       currentData = customerPaymentSummaries;
+    } else if (reportsTab === "products") {
+      currentData = products;
     }
 
     // Apply search filter
