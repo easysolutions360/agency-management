@@ -2533,6 +2533,405 @@ def test_business_financial_summary():
     print_success("Business Financial Summary tests completed successfully")
     return True
 
+def test_product_master_crud():
+    """Test Product Master CRUD operations"""
+    print_test_header("Product Master CRUD Operations")
+    
+    # Test data for products
+    products_data = [
+        {
+            "product_name": "Website Development",
+            "hsn_code": "998314",
+            "tax_group": "GST18",
+            "sale_price": 50000.00
+        },
+        {
+            "product_name": "Domain Registration",
+            "hsn_code": "843322",
+            "tax_group": "GST0",
+            "sale_price": 1500.00
+        },
+        {
+            "product_name": "Mobile App Development",
+            "hsn_code": "998315",
+            "tax_group": "GST28",
+            "sale_price": 75000.00
+        }
+    ]
+    
+    test_products = []
+    
+    # Test CREATE products
+    print("\n📝 Testing Product Creation...")
+    for product_data in products_data:
+        try:
+            response = requests.post(f"{API_URL}/products", json=product_data)
+            if response.status_code == 200:
+                product = response.json()
+                test_products.append(product)
+                
+                # Verify tax_percentage is calculated correctly
+                expected_tax = get_expected_tax_percentage(product_data["tax_group"])
+                if product.get("tax_percentage") == expected_tax:
+                    print_success(f"Created product: {product['product_name']} (Tax: {product['tax_percentage']}%)")
+                else:
+                    print_error(f"Tax percentage incorrect for {product['product_name']}: expected {expected_tax}%, got {product.get('tax_percentage')}%")
+                    return False
+            else:
+                print_error(f"Failed to create product {product_data['product_name']}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error creating product {product_data['product_name']}: {str(e)}")
+            return False
+    
+    # Test READ all products
+    print("\n📖 Testing Get All Products...")
+    try:
+        response = requests.get(f"{API_URL}/products")
+        if response.status_code == 200:
+            products = response.json()
+            print_success(f"Retrieved {len(products)} products")
+            if len(products) >= len(test_products):
+                print_success("All created products found in list")
+            else:
+                print_error("Not all created products found in list")
+        else:
+            print_error(f"Failed to get products: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting products: {str(e)}")
+        return False
+    
+    # Test READ individual product
+    print("\n🔍 Testing Get Individual Product...")
+    if test_products:
+        product_id = test_products[0]['id']
+        try:
+            response = requests.get(f"{API_URL}/products/{product_id}")
+            if response.status_code == 200:
+                product = response.json()
+                print_success(f"Retrieved product: {product['product_name']}")
+            else:
+                print_error(f"Failed to get product {product_id}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error getting product {product_id}: {str(e)}")
+            return False
+    
+    # Test UPDATE product
+    print("\n✏️  Testing Product Update...")
+    if test_products:
+        product_id = test_products[0]['id']
+        update_data = {"sale_price": 55000.00, "tax_group": "GST12"}
+        try:
+            response = requests.put(f"{API_URL}/products/{product_id}", json=update_data)
+            if response.status_code == 200:
+                updated_product = response.json()
+                if updated_product['sale_price'] == update_data['sale_price']:
+                    print_success(f"Updated product price: ₹{updated_product['sale_price']}")
+                else:
+                    print_error("Product price update did not persist correctly")
+                    return False
+                
+                # Verify tax_percentage was recalculated
+                expected_tax = get_expected_tax_percentage(update_data["tax_group"])
+                if updated_product.get("tax_percentage") == expected_tax:
+                    print_success(f"Tax percentage recalculated correctly: {updated_product['tax_percentage']}%")
+                else:
+                    print_error(f"Tax percentage not recalculated: expected {expected_tax}%, got {updated_product.get('tax_percentage')}%")
+                    return False
+                    
+                test_products[0] = updated_product
+            else:
+                print_error(f"Failed to update product {product_id}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error updating product {product_id}: {str(e)}")
+            return False
+    
+    # Test DELETE product
+    print("\n🗑️  Testing Product Deletion...")
+    if len(test_products) > 1:
+        product_id = test_products[-1]['id']
+        product_name = test_products[-1]['product_name']
+        try:
+            response = requests.delete(f"{API_URL}/products/{product_id}")
+            if response.status_code == 200:
+                print_success(f"Deleted product: {product_name}")
+                
+                # Verify product is deleted
+                get_response = requests.get(f"{API_URL}/products/{product_id}")
+                if get_response.status_code == 404:
+                    print_success("Product correctly removed from database")
+                else:
+                    print_error("Product still exists after deletion")
+                    return False
+            else:
+                print_error(f"Failed to delete product {product_id}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error deleting product {product_id}: {str(e)}")
+            return False
+    
+    # Test error handling - non-existent product
+    print("\n🚫 Testing Error Handling...")
+    try:
+        response = requests.get(f"{API_URL}/products/non-existent-id")
+        if response.status_code == 404:
+            print_success("Correctly returned 404 for non-existent product")
+        else:
+            print_error(f"Expected 404 for non-existent product, got {response.status_code}")
+    except Exception as e:
+        print_error(f"Error testing non-existent product: {str(e)}")
+    
+    print_success("Product Master CRUD operations completed successfully")
+    return True
+
+def test_tax_groups_endpoint():
+    """Test Tax Groups endpoint"""
+    print_test_header("Tax Groups Endpoint")
+    
+    print("\n📊 Testing Tax Groups Retrieval...")
+    try:
+        response = requests.get(f"{API_URL}/tax-groups")
+        if response.status_code == 200:
+            tax_groups = response.json()
+            print_success(f"Retrieved {len(tax_groups)} tax groups")
+            
+            # Expected tax groups
+            expected_groups = [
+                {"value": "GST0", "label": "GST0 [0%]", "percentage": 0.0},
+                {"value": "GST5", "label": "GST5 [5%]", "percentage": 5.0},
+                {"value": "GST12", "label": "GST12 [12%]", "percentage": 12.0},
+                {"value": "GST18", "label": "GST18 [18%]", "percentage": 18.0},
+                {"value": "GST28", "label": "GST28 [28%]", "percentage": 28.0}
+            ]
+            
+            # Verify all expected tax groups are present
+            for expected in expected_groups:
+                found = False
+                for group in tax_groups:
+                    if (group.get("value") == expected["value"] and 
+                        group.get("label") == expected["label"] and 
+                        group.get("percentage") == expected["percentage"]):
+                        found = True
+                        break
+                
+                if found:
+                    print_success(f"Tax group found: {expected['label']}")
+                else:
+                    print_error(f"Tax group missing: {expected['label']}")
+                    return False
+            
+            print_success("All expected tax groups are present with correct data")
+        else:
+            print_error(f"Failed to get tax groups: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting tax groups: {str(e)}")
+        return False
+    
+    print_success("Tax Groups endpoint test completed successfully")
+    return True
+
+def test_enhanced_customer_endpoints():
+    """Test Enhanced Customer Endpoints with new fields"""
+    print_test_header("Enhanced Customer Endpoints")
+    
+    # Test data with new fields
+    enhanced_customer_data = {
+        "name": "Test Company",
+        "company_name": "Tech Solutions Pvt Ltd",
+        "phone": "9876543210",
+        "email": "test@techsolutions.com",
+        "address": "Mumbai",
+        "gst_no": "27AABCT1234A1Z5"
+    }
+    
+    # Test CREATE customer with new fields
+    print("\n📝 Testing Customer Creation with New Fields...")
+    try:
+        response = requests.post(f"{API_URL}/customers", json=enhanced_customer_data)
+        if response.status_code == 200:
+            customer = response.json()
+            
+            # Verify new fields are stored
+            if customer.get("company_name") == enhanced_customer_data["company_name"]:
+                print_success(f"Company name stored correctly: {customer['company_name']}")
+            else:
+                print_error("Company name not stored correctly")
+                return False
+            
+            if customer.get("gst_no") == enhanced_customer_data["gst_no"]:
+                print_success(f"GST number stored correctly: {customer['gst_no']}")
+            else:
+                print_error("GST number not stored correctly")
+                return False
+            
+            print_success(f"Created enhanced customer: {customer['name']}")
+            
+            # Test UPDATE customer with new fields
+            print("\n✏️  Testing Customer Update with New Fields...")
+            customer_id = customer['id']
+            update_data = {
+                "company_name": "Updated Tech Solutions Pvt Ltd",
+                "gst_no": "27AABCT5678B2Z9"
+            }
+            
+            update_response = requests.put(f"{API_URL}/customers/{customer_id}", json=update_data)
+            if update_response.status_code == 200:
+                updated_customer = update_response.json()
+                
+                if updated_customer.get("company_name") == update_data["company_name"]:
+                    print_success(f"Company name updated correctly: {updated_customer['company_name']}")
+                else:
+                    print_error("Company name update failed")
+                    return False
+                
+                if updated_customer.get("gst_no") == update_data["gst_no"]:
+                    print_success(f"GST number updated correctly: {updated_customer['gst_no']}")
+                else:
+                    print_error("GST number update failed")
+                    return False
+            else:
+                print_error(f"Failed to update customer: {update_response.status_code}")
+                return False
+            
+            # Test GET customers to verify new fields are returned
+            print("\n📖 Testing Get Customers with New Fields...")
+            get_response = requests.get(f"{API_URL}/customers")
+            if get_response.status_code == 200:
+                customers = get_response.json()
+                
+                # Find our test customer
+                test_customer_found = False
+                for cust in customers:
+                    if cust.get("id") == customer_id:
+                        test_customer_found = True
+                        if "company_name" in cust and "gst_no" in cust:
+                            print_success("New fields present in customer list")
+                        else:
+                            print_error("New fields missing in customer list")
+                            return False
+                        break
+                
+                if not test_customer_found:
+                    print_error("Test customer not found in list")
+                    return False
+            else:
+                print_error(f"Failed to get customers: {get_response.status_code}")
+                return False
+            
+        else:
+            print_error(f"Failed to create enhanced customer: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing enhanced customer endpoints: {str(e)}")
+        return False
+    
+    print_success("Enhanced Customer Endpoints test completed successfully")
+    return True
+
+def test_product_tax_calculation_logic():
+    """Test Product Creation Logic with tax calculation"""
+    print_test_header("Product Tax Calculation Logic")
+    
+    # Test various tax groups
+    tax_test_cases = [
+        {"tax_group": "GST0", "expected_percentage": 0.0},
+        {"tax_group": "GST5", "expected_percentage": 5.0},
+        {"tax_group": "GST12", "expected_percentage": 12.0},
+        {"tax_group": "GST18", "expected_percentage": 18.0},
+        {"tax_group": "GST28", "expected_percentage": 28.0}
+    ]
+    
+    print("\n🧮 Testing Tax Percentage Calculation for Different Tax Groups...")
+    
+    for test_case in tax_test_cases:
+        product_data = {
+            "product_name": f"Test Product {test_case['tax_group']}",
+            "hsn_code": "123456",
+            "tax_group": test_case["tax_group"],
+            "sale_price": 10000.00
+        }
+        
+        try:
+            response = requests.post(f"{API_URL}/products", json=product_data)
+            if response.status_code == 200:
+                product = response.json()
+                
+                if product.get("tax_percentage") == test_case["expected_percentage"]:
+                    print_success(f"{test_case['tax_group']}: {test_case['expected_percentage']}% ✓")
+                else:
+                    print_error(f"{test_case['tax_group']}: Expected {test_case['expected_percentage']}%, got {product.get('tax_percentage')}%")
+                    return False
+            else:
+                print_error(f"Failed to create product for {test_case['tax_group']}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error testing {test_case['tax_group']}: {str(e)}")
+            return False
+    
+    # Test tax group update recalculation
+    print("\n🔄 Testing Tax Group Update Recalculation...")
+    
+    # Create a product with GST18
+    initial_product = {
+        "product_name": "Tax Update Test Product",
+        "hsn_code": "789012",
+        "tax_group": "GST18",
+        "sale_price": 25000.00
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/products", json=initial_product)
+        if response.status_code == 200:
+            product = response.json()
+            product_id = product['id']
+            
+            # Verify initial tax percentage
+            if product.get("tax_percentage") == 18.0:
+                print_success("Initial tax percentage correct: 18%")
+            else:
+                print_error(f"Initial tax percentage incorrect: {product.get('tax_percentage')}%")
+                return False
+            
+            # Update tax group to GST28
+            update_data = {"tax_group": "GST28"}
+            update_response = requests.put(f"{API_URL}/products/{product_id}", json=update_data)
+            
+            if update_response.status_code == 200:
+                updated_product = update_response.json()
+                
+                if updated_product.get("tax_percentage") == 28.0:
+                    print_success("Tax percentage recalculated correctly after update: 28%")
+                else:
+                    print_error(f"Tax percentage not recalculated: {updated_product.get('tax_percentage')}%")
+                    return False
+            else:
+                print_error(f"Failed to update product tax group: {update_response.status_code}")
+                return False
+        else:
+            print_error(f"Failed to create test product: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing tax group update: {str(e)}")
+        return False
+    
+    print_success("Product Tax Calculation Logic test completed successfully")
+    return True
+
+def get_expected_tax_percentage(tax_group: str) -> float:
+    """Helper function to get expected tax percentage"""
+    tax_mapping = {
+        "GST0": 0.0,
+        "GST5": 5.0,
+        "GST12": 12.0,
+        "GST18": 18.0,
+        "GST28": 28.0
+    }
+    return tax_mapping.get(tax_group, 0.0)
+
 def main():
     """Run all backend API tests"""
     print("🚀 Starting Comprehensive Backend API Testing")
@@ -2563,6 +2962,11 @@ def main():
         ("Business Financial Summary", test_business_financial_summary),
         ("FIXED Domain Renewal Functionality - Review Testing", test_domain_renewal_fixed_functionality),
         ("🎯 DOMAIN RENEWAL REVIEW - COMPREHENSIVE", test_domain_renewal_review_comprehensive),
+        # Product Master functionality tests
+        ("Product Master CRUD Operations", test_product_master_crud),
+        ("Tax Groups Endpoint", test_tax_groups_endpoint),
+        ("Enhanced Customer Endpoints", test_enhanced_customer_endpoints),
+        ("Product Tax Calculation Logic", test_product_tax_calculation_logic),
         ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
