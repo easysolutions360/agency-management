@@ -343,6 +343,23 @@ const App = () => {
     }
   };
 
+  const handleProductSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const productData = {
+        ...productForm,
+        sale_price: parseFloat(productForm.sale_price)
+      };
+      await axios.post(`${API}/products`, productData);
+      setProductForm({ product_name: "", hsn_code: "", tax_group: "", sale_price: "" });
+      fetchProducts();
+      alert("Product added successfully!");
+    } catch (error) {
+      console.error("Error adding product:", error);
+      alert("Error adding product");
+    }
+  };
+
   const handleProjectSubmit = async (e) => {
     e.preventDefault();
     try {
