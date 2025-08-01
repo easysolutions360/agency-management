@@ -1915,6 +1915,12 @@ const App = () => {
             onClick={() => setActiveTab("domains")}
           />
           <TabButton
+            tab="products"
+            label="Product Master"
+            isActive={activeTab === "products"}
+            onClick={() => setActiveTab("products")}
+          />
+          <TabButton
             tab="reports"
             label="Reports"
             isActive={activeTab === "reports"}
