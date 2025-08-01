@@ -220,6 +220,17 @@ const App = () => {
     }));
   };
 
+  // Helper function to check if domain is due for renewal (within 30 days)
+  const isDomainDueForRenewal = (domain) => {
+    const validityDate = new Date(domain.validity_date);
+    const currentDate = new Date();
+    const timeDifference = validityDate.getTime() - currentDate.getTime();
+    const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+    
+    // Domain is due for renewal if it expires within 30 days or has already expired
+    return daysDifference <= 30;
+  };
+
   const fetchDomainsForRenewal = async () => {
     try {
       const response = await axios.get(`${API}/domains-due-renewal`);
