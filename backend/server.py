@@ -965,6 +965,89 @@ async def get_all_customer_balances():
     
     return balances
 
+@api_router.get("/dashboard/business-financial-summary", response_model=BusinessFinancialSummary)
+async def get_business_financial_summary():
+    """Get comprehensive business financial summary for dashboard"""
+    
+    # Get all projects and customers
+    projects = await db.projects.find().to_list(1000)
+    customers = await db.customers.find().to_list(1000)
+    payments = await db.payments.find().sort("payment_date", -1).to_list(1000)
+    
+    # Calculate project totals
+    total_projects = len(projects)
+    total_customers = len(customers)
+    total_project_value = sum(p.get("amount", 0) for p in projects)
+    total_received = sum(p.get("paid_amount", 0) for p in projects)
+    total_outstanding = total_project_value - total_received
+    
+    # Calculate customer credit balances
+    total_customer_credit = 0
+    customer_credits = []
+    for customer in customers:
+        balance = await get_customer_balance(customer["id"])
+        total_customer_credit += balance
+        if balance > 0:  # Only customers with positive credit
+            customer_credits.append({
+                "customer_name": customer["name"],
+                "credit_balance": balance
+            })
+    
+    # Calculate rates
+    project_completion_rate = (total_received / total_project_value * 100) if total_project_value > 0 else 0
+    payment_collection_rate = project_completion_rate  # Same calculation for now
+    net_revenue = total_received + total_customer_credit
+    
+    # Get top customers by project value
+    customer_totals = {}
+    for project in projects:
+        customer_id = project.get("customer_id")
+        amount = project.get("amount", 0)
+        if customer_id in customer_totals:
+            customer_totals[customer_id]["total_amount"] += amount
+            customer_totals[customer_id]["project_count"] += 1
+        else:
+            # Find customer name
+            customer = next((c for c in customers if c["id"] == customer_id), None)
+            customer_totals[customer_id] = {
+                "customer_name": customer["name"] if customer else "Unknown",
+                "total_amount": amount,
+                "project_count": 1
+            }
+    
+    # Sort and get top 5 customers
+    top_customers = sorted(
+        customer_totals.values(), 
+        key=lambda x: x["total_amount"], 
+        reverse=True
+    )[:5]
+    
+    # Get recent payments (last 10)
+    recent_payments = [
+        {
+            "date": p.get("payment_date"),
+            "amount": p.get("amount", 0),
+            "type": p.get("type", ""),
+            "description": p.get("description", ""),
+            "customer_id": p.get("customer_id", "")
+        }
+        for p in payments[:10]
+    ]
+    
+    return BusinessFinancialSummary(
+        total_projects=total_projects,
+        total_customers=total_customers,
+        total_project_value=total_project_value,
+        total_received=total_received,
+        total_outstanding=total_outstanding,
+        total_customer_credit=total_customer_credit,
+        net_revenue=net_revenue,
+        project_completion_rate=round(project_completion_rate, 2),
+        payment_collection_rate=round(payment_collection_rate, 2),
+        top_customers=top_customers,
+        recent_payments=recent_payments
+    )
+
 @api_router.get("/")
 async def root():
     return {"message": "Agency Management System API"}
