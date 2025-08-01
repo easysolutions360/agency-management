@@ -668,11 +668,11 @@ async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
         ledger_entry = CustomerLedger(
             customer_id=project["customer_id"],
             transaction_type="debit",
-            amount=domain["renewal_amount"],
+            amount=renewal_amount,
             description=f"Domain renewal for {domain['domain_name']} (Agency paid)",
             reference_type="domain_renewal",
             reference_id=domain_id,
-            balance=current_balance - domain["renewal_amount"]  # New balance after this debit
+            balance=current_balance - renewal_amount  # New balance after this debit
         )
         
         await db.ledger.insert_one(ledger_entry.dict())
