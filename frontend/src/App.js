@@ -629,6 +629,13 @@ const App = () => {
         fetchDomains();
         fetchDashboardProjects();
         fetchExpiringDomains();
+      } else if (editingType === "product") {
+        const productData = {
+          ...editingItem,
+          sale_price: parseFloat(editingItem.sale_price)
+        };
+        await axios.put(`${API}/products/${editingItem.id}`, productData);
+        fetchProducts();
       }
       setEditingItem(null);
       setEditingType(null);
