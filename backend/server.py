@@ -1076,6 +1076,77 @@ async def get_business_financial_summary():
         recent_payments=recent_payments
     )
 
+# Helper function to get tax percentage from tax group
+def get_tax_percentage(tax_group: str) -> float:
+    tax_mapping = {
+        "GST0": 0.0,
+        "GST5": 5.0,
+        "GST12": 12.0,
+        "GST18": 18.0,
+        "GST28": 28.0
+    }
+    return tax_mapping.get(tax_group, 0.0)
+
+# Product Master Routes
+@api_router.post("/products", response_model=Product)
+async def create_product(product: ProductCreate):
+    product_dict = product.dict()
+    # Set tax_percentage based on tax_group
+    product_dict["tax_percentage"] = get_tax_percentage(product.tax_group)
+    product_obj = Product(**product_dict)
+    await db.products.insert_one(product_obj.dict())
+    return product_obj
+
+@api_router.get("/products", response_model=List[Product])
+async def get_products():
+    products = await db.products.find().to_list(1000)
+    return [Product(**product) for product in products]
+
+@api_router.get("/products/{product_id}", response_model=Product)
+async def get_product(product_id: str):
+    product = await db.products.find_one({"id": product_id})
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return Product(**product)
+
+@api_router.put("/products/{product_id}", response_model=Product)
+async def update_product(product_id: str, product_update: ProductUpdate):
+    update_dict = {k: v for k, v in product_update.dict().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    # Update tax_percentage if tax_group is being updated
+    if "tax_group" in update_dict:
+        update_dict["tax_percentage"] = get_tax_percentage(update_dict["tax_group"])
+    
+    result = await db.products.update_one(
+        {"id": product_id}, 
+        {"$set": update_dict}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    updated_product = await db.products.find_one({"id": product_id})
+    return Product(**updated_product)
+
+@api_router.delete("/products/{product_id}")
+async def delete_product(product_id: str):
+    result = await db.products.delete_one({"id": product_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"message": "Product deleted successfully"}
+
+# Get available tax groups for dropdown
+@api_router.get("/tax-groups")
+async def get_tax_groups():
+    return [
+        {"value": "GST0", "label": "GST0 [0%]", "percentage": 0.0},
+        {"value": "GST5", "label": "GST5 [5%]", "percentage": 5.0},
+        {"value": "GST12", "label": "GST12 [12%]", "percentage": 12.0},
+        {"value": "GST18", "label": "GST18 [18%]", "percentage": 18.0},
+        {"value": "GST28", "label": "GST28 [28%]", "percentage": 28.0}
+    ]
+
 @api_router.get("/")
 async def root():
     return {"message": "Agency Management System API"}
