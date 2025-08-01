@@ -320,6 +320,8 @@ const App = () => {
     fetchAmcProjects();
     fetchCustomerBalances();
     fetchBusinessFinancials();
+    fetchProducts();
+    fetchTaxGroups();
   }, []);
 
   useEffect(() => {
