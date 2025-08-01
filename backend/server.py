@@ -638,15 +638,22 @@ async def renew_domain(domain_id: str, renewal_request: DomainRenewalRequest):
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    # Calculate new validity date (extend by 1 year)
-    current_validity = datetime.fromisoformat(domain["validity_date"]).date()
-    new_validity = current_validity + timedelta(days=365)
+    # Use custom validity date if provided, otherwise extend by 1 year
+    if renewal_request.new_validity_date:
+        new_validity = datetime.fromisoformat(renewal_request.new_validity_date).date()
+    else:
+        current_validity = datetime.fromisoformat(domain["validity_date"]).date()
+        new_validity = current_validity + timedelta(days=365)
+    
+    # Use custom amount if provided, otherwise use existing renewal_amount
+    renewal_amount = renewal_request.amount if renewal_request.amount else domain.get("renewal_amount", 0)
     
     # Update domain
     await db.domains.update_one(
         {"id": domain_id},
         {"$set": {
             "validity_date": new_validity.isoformat(),
+            "renewal_amount": renewal_amount,  # Update renewal amount
             "renewal_status": "renewed",
             "payment_type": renewal_request.payment_type
         }}
