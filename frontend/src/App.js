@@ -103,6 +103,31 @@ const App = () => {
     sale_price: ""
   });
 
+  // Estimate states
+  const [estimates, setEstimates] = useState([]);
+  const [estimateForm, setEstimateForm] = useState({
+    customer_id: "",
+    reference_number: "",
+    estimate_date: new Date().toISOString().split('T')[0],
+    expiry_date: "",
+    salesperson: "",
+    project_id: "",
+    customer_notes: "",
+    adjustment: 0
+  });
+  const [estimateLineItems, setEstimateLineItems] = useState([
+    {
+      id: Date.now(),
+      product_id: "",
+      product_name: "",
+      description: "",
+      quantity: 1,
+      rate: 0,
+      discount: 0,
+      tax_group: "GST0"
+    }
+  ]);
+
   const [projectForm, setProjectForm] = useState({
     customer_id: "",
     type: "",
