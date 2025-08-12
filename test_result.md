@@ -461,6 +461,18 @@ test_plan:
         agent: "testing"
         comment: "✅ PRODUCT TAX CALCULATION LOGIC TESTING COMPLETED: Successfully tested automatic tax_percentage calculation from tax_group. 1) Tax Group Mapping: Verified all tax groups calculate correct percentages (GST0→0%, GST5→5%, GST12→12%, GST18→18%, GST28→28%). 2) Product Creation: tax_percentage automatically set based on tax_group during product creation. 3) Tax Group Updates: When tax_group is updated, tax_percentage is automatically recalculated (tested GST18→GST28: 18%→28%). 4) Helper Function: get_tax_percentage() function working correctly with proper tax mapping. All tax calculation logic working perfectly as specified."
 
+  - task: "Estimate Module Backend Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE ESTIMATE MODULE TESTING COMPLETED - ALL CORE FUNCTIONALITY WORKING: Successfully tested the newly implemented Estimate module backend functionality as requested in the review. ✅ ESTIMATE CRUD OPERATIONS: All endpoints working correctly - POST /api/estimates (create with auto-generated EST-XXXX numbers), GET /api/estimates (list all estimates), GET /api/estimates/{id} (get specific estimate), PUT /api/estimates/{id} (update estimate with recalculated totals), DELETE /api/estimates/{id} (delete estimate), PUT /api/estimates/{id}/status (update estimate status). ✅ AUTO-GENERATED EST-XXXX NUMBERS: Estimate number generation working correctly with auto-increment functionality (EST-0001, EST-0002, etc.). ✅ LINE ITEM CALCULATIONS: Complex calculations working correctly with quantity × rate, discount percentages, and tax calculations. Verified with multiple scenarios including Website Development (₹50,000 with 10% discount, GST18 = ₹8,100 tax), Domain Registration (₹1,500 with 0% discount, GST0 = ₹0 tax), Mobile App Development (₹75,000 with 0% discount, GST28 = ₹21,000 tax). All calculations accurate with proper subtotal, tax, and total amount calculations. ✅ INTEGRATION WITH CUSTOMER AND PRODUCT DATA: Customer integration working correctly with customer_id linking, product integration working with product_id, product_name, tax_group, and tax_percentage from Product Master data. Mixed product and custom line items supported. ✅ TAX CALCULATIONS BASED ON PRODUCT TAX GROUPS: All GST rates working correctly - GST0 (0%), GST5 (5%), GST12 (12%), GST18 (18%), GST28 (28%). Tax breakdown by GST rate calculated correctly. Edge cases handled properly (zero rate items, 100% discount items, high quantity items). ✅ ESTIMATE STATUS MANAGEMENT: Status updates working correctly (draft → sent → accepted/declined). ✅ SAMPLE TEST DATA: Created comprehensive test estimates with real-world scenarios. Fixed minor issue in calculate_line_item_totals function to handle both object and dictionary inputs during estimate updates. All estimate functionality working perfectly with comprehensive backend testing covering 28 test suites including 4 dedicated estimate test suites. The Estimate module is ready for production use."
+
 agent_communication:
   - agent: "main"
     message: "Enhanced the agency management system with comprehensive payment functionality. Key improvements: 1) Added AMC amount field to projects and payment recording, 2) Implemented domain renewal with dual payment options (client vs agency), 3) Enhanced customer ledger with complete payment tracking, 4) Added customer payment summaries and comprehensive payment status views. All new backend endpoints and frontend UI components implemented. Ready for comprehensive testing of the enhanced payment system."
