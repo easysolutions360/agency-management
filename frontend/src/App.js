@@ -2234,6 +2234,7 @@ const App = () => {
         {activeTab === "projects" && renderProjectForm()}
         {activeTab === "domains" && renderDomainForm()}
         {activeTab === "products" && renderProductMaster()}
+        {activeTab === "estimates" && renderEstimateForm()}
         {activeTab === "reports" && renderReports()}
         {activeTab === "amc" && renderAMC()}
         {activeTab === "ledger" && renderCustomerLedgerTab()}
