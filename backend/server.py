@@ -1147,6 +1147,243 @@ async def get_tax_groups():
         {"value": "GST28", "label": "GST28 [28%]", "percentage": 28.0}
     ]
 
+# Estimate Models
+class EstimateLineItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    product_id: Optional[str] = None
+    product_name: str = ""
+    description: str = ""
+    quantity: float = 1.0
+    rate: float = 0.0
+    discount: float = 0.0  # percentage
+    tax_group: str = "GST0"
+    tax_percentage: float = 0.0
+    amount: float = 0.0  # calculated field
+
+class EstimateLineItemCreate(BaseModel):
+    product_id: Optional[str] = None
+    product_name: str = ""
+    description: str = ""
+    quantity: float = 1.0
+    rate: float = 0.0
+    discount: float = 0.0  # percentage
+    tax_group: str = "GST0"
+
+class Estimate(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    estimate_number: str = ""  # EST-0001, EST-0002, etc.
+    customer_id: str
+    reference_number: str = ""
+    estimate_date: date = Field(default_factory=lambda: datetime.utcnow().date())
+    expiry_date: date = Field(default_factory=lambda: (datetime.utcnow() + timedelta(days=30)).date())
+    salesperson: str = ""
+    project_id: Optional[str] = None
+    line_items: List[EstimateLineItem] = []
+    subtotal: float = 0.0
+    total_tax: float = 0.0
+    adjustment: float = 0.0
+    total_amount: float = 0.0
+    customer_notes: str = ""
+    status: str = "draft"  # draft, sent, accepted, declined
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class EstimateCreate(BaseModel):
+    customer_id: str
+    reference_number: str = ""
+    estimate_date: date = Field(default_factory=lambda: datetime.utcnow().date())
+    expiry_date: date = Field(default_factory=lambda: (datetime.utcnow() + timedelta(days=30)).date())
+    salesperson: str = ""
+    project_id: Optional[str] = None
+    line_items: List[EstimateLineItemCreate] = []
+    adjustment: float = 0.0
+    customer_notes: str = ""
+
+class EstimateUpdate(BaseModel):
+    customer_id: Optional[str] = None
+    reference_number: Optional[str] = None
+    estimate_date: Optional[date] = None
+    expiry_date: Optional[date] = None
+    salesperson: Optional[str] = None
+    project_id: Optional[str] = None
+    line_items: Optional[List[EstimateLineItemCreate]] = None
+    adjustment: Optional[float] = None
+    customer_notes: Optional[str] = None
+    status: Optional[str] = None
+
+# Helper function to generate next estimate number
+async def generate_estimate_number():
+    # Find the latest estimate number
+    latest_estimate = await db.estimates.find().sort("estimate_number", -1).limit(1).to_list(1)
+    
+    if not latest_estimate:
+        return "EST-0001"
+    
+    latest_number = latest_estimate[0].get("estimate_number", "EST-0000")
+    # Extract the number part and increment
+    try:
+        number_part = int(latest_number.split("-")[1])
+        new_number = number_part + 1
+        return f"EST-{new_number:04d}"
+    except (IndexError, ValueError):
+        return "EST-0001"
+
+# Helper function to calculate line item amounts and taxes
+def calculate_line_item_totals(line_items: List[EstimateLineItemCreate]) -> tuple:
+    processed_items = []
+    subtotal = 0.0
+    total_tax = 0.0
+    
+    for item in line_items:
+        # Calculate line amount after discount
+        line_subtotal = item.quantity * item.rate
+        discount_amount = line_subtotal * (item.discount / 100)
+        line_amount_after_discount = line_subtotal - discount_amount
+        
+        # Get tax percentage and calculate tax
+        tax_percentage = get_tax_percentage(item.tax_group)
+        tax_amount = line_amount_after_discount * (tax_percentage / 100)
+        total_line_amount = line_amount_after_discount + tax_amount
+        
+        # Create processed line item
+        processed_item = EstimateLineItem(
+            product_id=item.product_id,
+            product_name=item.product_name,
+            description=item.description,
+            quantity=item.quantity,
+            rate=item.rate,
+            discount=item.discount,
+            tax_group=item.tax_group,
+            tax_percentage=tax_percentage,
+            amount=total_line_amount
+        )
+        
+        processed_items.append(processed_item)
+        subtotal += line_amount_after_discount
+        total_tax += tax_amount
+    
+    return processed_items, subtotal, total_tax
+
+# Estimate CRUD Routes
+@api_router.post("/estimates", response_model=Estimate)
+async def create_estimate(estimate: EstimateCreate):
+    # Check if customer exists
+    customer = await db.customers.find_one({"id": estimate.customer_id})
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Generate estimate number
+    estimate_number = await generate_estimate_number()
+    
+    # Calculate line item totals
+    processed_items, subtotal, total_tax = calculate_line_item_totals(estimate.line_items)
+    
+    # Calculate final total
+    final_total = subtotal + total_tax + estimate.adjustment
+    
+    # Create estimate object
+    estimate_dict = estimate.dict()
+    estimate_dict["estimate_number"] = estimate_number
+    estimate_dict["line_items"] = [item.dict() for item in processed_items]
+    estimate_dict["subtotal"] = subtotal
+    estimate_dict["total_tax"] = total_tax
+    estimate_dict["total_amount"] = final_total
+    
+    estimate_obj = Estimate(**estimate_dict)
+    
+    # Convert date objects to strings for MongoDB storage
+    estimate_data = estimate_obj.dict()
+    estimate_data['estimate_date'] = estimate_data['estimate_date'].isoformat()
+    estimate_data['expiry_date'] = estimate_data['expiry_date'].isoformat()
+    
+    await db.estimates.insert_one(estimate_data)
+    return estimate_obj
+
+@api_router.get("/estimates", response_model=List[Estimate])
+async def get_estimates():
+    estimates = await db.estimates.find().sort("created_at", -1).to_list(1000)
+    # Convert string dates back to date objects
+    for estimate in estimates:
+        if isinstance(estimate.get('estimate_date'), str):
+            estimate['estimate_date'] = datetime.fromisoformat(estimate['estimate_date']).date()
+        if isinstance(estimate.get('expiry_date'), str):
+            estimate['expiry_date'] = datetime.fromisoformat(estimate['expiry_date']).date()
+    return [Estimate(**estimate) for estimate in estimates]
+
+@api_router.get("/estimates/{estimate_id}", response_model=Estimate)
+async def get_estimate(estimate_id: str):
+    estimate = await db.estimates.find_one({"id": estimate_id})
+    if not estimate:
+        raise HTTPException(status_code=404, detail="Estimate not found")
+    # Convert string dates back to date objects
+    if isinstance(estimate.get('estimate_date'), str):
+        estimate['estimate_date'] = datetime.fromisoformat(estimate['estimate_date']).date()
+    if isinstance(estimate.get('expiry_date'), str):
+        estimate['expiry_date'] = datetime.fromisoformat(estimate['expiry_date']).date()
+    return Estimate(**estimate)
+
+@api_router.put("/estimates/{estimate_id}", response_model=Estimate)
+async def update_estimate(estimate_id: str, estimate_update: EstimateUpdate):
+    # Get existing estimate
+    existing_estimate = await db.estimates.find_one({"id": estimate_id})
+    if not existing_estimate:
+        raise HTTPException(status_code=404, detail="Estimate not found")
+    
+    update_dict = {k: v for k, v in estimate_update.dict().items() if v is not None}
+    if not update_dict:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    # Recalculate totals if line items are being updated
+    if "line_items" in update_dict:
+        processed_items, subtotal, total_tax = calculate_line_item_totals(update_dict["line_items"])
+        adjustment = update_dict.get("adjustment", existing_estimate.get("adjustment", 0))
+        final_total = subtotal + total_tax + adjustment
+        
+        update_dict["line_items"] = [item.dict() for item in processed_items]
+        update_dict["subtotal"] = subtotal
+        update_dict["total_tax"] = total_tax
+        update_dict["total_amount"] = final_total
+    
+    # Convert date objects to strings for MongoDB storage
+    if 'estimate_date' in update_dict and isinstance(update_dict['estimate_date'], date):
+        update_dict['estimate_date'] = update_dict['estimate_date'].isoformat()
+    if 'expiry_date' in update_dict and isinstance(update_dict['expiry_date'], date):
+        update_dict['expiry_date'] = update_dict['expiry_date'].isoformat()
+    
+    result = await db.estimates.update_one(
+        {"id": estimate_id}, 
+        {"$set": update_dict}
+    )
+    
+    updated_estimate = await db.estimates.find_one({"id": estimate_id})
+    # Convert string dates back to date objects
+    if isinstance(updated_estimate.get('estimate_date'), str):
+        updated_estimate['estimate_date'] = datetime.fromisoformat(updated_estimate['estimate_date']).date()
+    if isinstance(updated_estimate.get('expiry_date'), str):
+        updated_estimate['expiry_date'] = datetime.fromisoformat(updated_estimate['expiry_date']).date()
+    return Estimate(**updated_estimate)
+
+@api_router.delete("/estimates/{estimate_id}")
+async def delete_estimate(estimate_id: str):
+    result = await db.estimates.delete_one({"id": estimate_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Estimate not found")
+    return {"message": "Estimate deleted successfully"}
+
+# Update estimate status (draft -> sent -> accepted/declined)
+@api_router.put("/estimates/{estimate_id}/status")
+async def update_estimate_status(estimate_id: str, status: dict):
+    if "status" not in status or status["status"] not in ["draft", "sent", "accepted", "declined"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    result = await db.estimates.update_one(
+        {"id": estimate_id}, 
+        {"$set": {"status": status["status"]}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Estimate not found")
+    
+    return {"message": f"Estimate status updated to {status['status']}"}
+
 @api_router.get("/")
 async def root():
     return {"message": "Agency Management System API"}
