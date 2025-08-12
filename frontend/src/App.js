@@ -272,6 +272,34 @@ const App = () => {
     }
   };
 
+  // Estimate API calls
+  const fetchEstimates = async () => {
+    try {
+      const response = await axios.get(`${API}/estimates`);
+      setEstimates(response.data);
+    } catch (error) {
+      console.error("Error fetching estimates:", error);
+    }
+  };
+
+  const generateNextEstimateNumber = async () => {
+    try {
+      const response = await axios.get(`${API}/estimates`);
+      const estimates = response.data;
+      if (estimates.length === 0) {
+        return "EST-0001";
+      }
+      const latestNumber = Math.max(...estimates.map(est => {
+        const num = est.estimate_number.split('-')[1];
+        return parseInt(num) || 0;
+      }));
+      return `EST-${String(latestNumber + 1).padStart(4, '0')}`;
+    } catch (error) {
+      console.error("Error generating estimate number:", error);
+      return "EST-0001";
+    }
+  };
+
   const viewCustomerLedger = async (customerId, customerName) => {
     setSelectedCustomer({ id: customerId, name: customerName });
     setLedgerCurrentPage(1); // Reset to first page
