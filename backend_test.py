@@ -2932,6 +2932,857 @@ def get_expected_tax_percentage(tax_group: str) -> float:
     }
     return tax_mapping.get(tax_group, 0.0)
 
+def test_estimate_crud_operations():
+    """Test Estimate CRUD operations with auto-generated EST-XXXX numbers"""
+    print_test_header("Estimate CRUD Operations")
+    
+    if not test_customers:
+        print_error("No test customers available for estimate testing")
+        return False
+    
+    # Test data for estimates
+    estimate_data = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "REF-2024-001",
+        "estimate_date": "2024-01-15",
+        "expiry_date": "2024-02-14",
+        "salesperson": "John Smith",
+        "line_items": [
+            {
+                "product_name": "Website Development",
+                "description": "Complete e-commerce website with admin panel",
+                "quantity": 1.0,
+                "rate": 50000.00,
+                "discount": 10.0,
+                "tax_group": "GST18"
+            },
+            {
+                "product_name": "Domain Registration",
+                "description": "Annual domain registration",
+                "quantity": 1.0,
+                "rate": 1500.00,
+                "discount": 0.0,
+                "tax_group": "GST0"
+            },
+            {
+                "product_name": "Hosting Service",
+                "description": "Annual hosting service",
+                "quantity": 1.0,
+                "rate": 5000.00,
+                "discount": 5.0,
+                "tax_group": "GST18"
+            }
+        ],
+        "adjustment": -500.00,
+        "customer_notes": "Please review and confirm the estimate"
+    }
+    
+    test_estimates = []
+    
+    # Test CREATE estimate
+    print("\n📝 Testing Estimate Creation with Auto-Generated Number...")
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=estimate_data)
+        if response.status_code == 200:
+            estimate = response.json()
+            test_estimates.append(estimate)
+            
+            # Verify auto-generated estimate number
+            if estimate.get('estimate_number') and estimate['estimate_number'].startswith('EST-'):
+                print_success(f"Created estimate with auto-generated number: {estimate['estimate_number']}")
+            else:
+                print_error(f"Estimate number not generated correctly: {estimate.get('estimate_number')}")
+                return False
+            
+            # Verify line item calculations
+            expected_subtotal = 0.0
+            expected_tax = 0.0
+            
+            for item in estimate['line_items']:
+                line_subtotal = item['quantity'] * item['rate']
+                discount_amount = line_subtotal * (item['discount'] / 100)
+                line_amount_after_discount = line_subtotal - discount_amount
+                tax_amount = line_amount_after_discount * (item['tax_percentage'] / 100)
+                
+                expected_subtotal += line_amount_after_discount
+                expected_tax += tax_amount
+            
+            expected_total = expected_subtotal + expected_tax + estimate_data['adjustment']
+            
+            if abs(estimate['subtotal'] - expected_subtotal) < 0.01:
+                print_success(f"Subtotal calculated correctly: ₹{estimate['subtotal']}")
+            else:
+                print_error(f"Subtotal calculation error: Expected ₹{expected_subtotal}, got ₹{estimate['subtotal']}")
+                return False
+            
+            if abs(estimate['total_tax'] - expected_tax) < 0.01:
+                print_success(f"Total tax calculated correctly: ₹{estimate['total_tax']}")
+            else:
+                print_error(f"Tax calculation error: Expected ₹{expected_tax}, got ₹{estimate['total_tax']}")
+                return False
+            
+            if abs(estimate['total_amount'] - expected_total) < 0.01:
+                print_success(f"Total amount calculated correctly: ₹{estimate['total_amount']}")
+            else:
+                print_error(f"Total calculation error: Expected ₹{expected_total}, got ₹{estimate['total_amount']}")
+                return False
+            
+        else:
+            print_error(f"Failed to create estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error creating estimate: {str(e)}")
+        return False
+    
+    # Test estimate number auto-increment
+    print("\n🔢 Testing Estimate Number Auto-Increment...")
+    second_estimate_data = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "REF-2024-002",
+        "line_items": [
+            {
+                "product_name": "Mobile App",
+                "description": "iOS and Android mobile application",
+                "quantity": 1.0,
+                "rate": 75000.00,
+                "discount": 0.0,
+                "tax_group": "GST28"
+            }
+        ],
+        "adjustment": 0.0,
+        "customer_notes": "Second estimate for testing"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=second_estimate_data)
+        if response.status_code == 200:
+            second_estimate = response.json()
+            test_estimates.append(second_estimate)
+            
+            # Extract numbers from estimate numbers
+            first_number = int(test_estimates[0]['estimate_number'].split('-')[1])
+            second_number = int(second_estimate['estimate_number'].split('-')[1])
+            
+            if second_number == first_number + 1:
+                print_success(f"Estimate number auto-incremented correctly: {second_estimate['estimate_number']}")
+            else:
+                print_error(f"Estimate number not incremented correctly: {first_number} -> {second_number}")
+                return False
+        else:
+            print_error(f"Failed to create second estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing estimate number increment: {str(e)}")
+        return False
+    
+    # Test READ all estimates
+    print("\n📖 Testing Get All Estimates...")
+    try:
+        response = requests.get(f"{API_URL}/estimates")
+        if response.status_code == 200:
+            estimates = response.json()
+            print_success(f"Retrieved {len(estimates)} estimates")
+            if len(estimates) >= len(test_estimates):
+                print_success("All created estimates found in list")
+            else:
+                print_error("Not all created estimates found in list")
+        else:
+            print_error(f"Failed to get estimates: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error getting estimates: {str(e)}")
+        return False
+    
+    # Test READ individual estimate
+    print("\n🔍 Testing Get Individual Estimate...")
+    if test_estimates:
+        estimate_id = test_estimates[0]['id']
+        try:
+            response = requests.get(f"{API_URL}/estimates/{estimate_id}")
+            if response.status_code == 200:
+                estimate = response.json()
+                print_success(f"Retrieved estimate: {estimate['estimate_number']}")
+            else:
+                print_error(f"Failed to get estimate {estimate_id}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error getting estimate {estimate_id}: {str(e)}")
+            return False
+    
+    # Test UPDATE estimate
+    print("\n✏️  Testing Estimate Update...")
+    if test_estimates:
+        estimate_id = test_estimates[0]['id']
+        update_data = {
+            "salesperson": "Jane Doe",
+            "adjustment": -1000.00,
+            "line_items": [
+                {
+                    "product_name": "Updated Website Development",
+                    "description": "Enhanced e-commerce website with advanced features",
+                    "quantity": 1.0,
+                    "rate": 60000.00,
+                    "discount": 15.0,
+                    "tax_group": "GST18"
+                }
+            ]
+        }
+        try:
+            response = requests.put(f"{API_URL}/estimates/{estimate_id}", json=update_data)
+            if response.status_code == 200:
+                updated_estimate = response.json()
+                if updated_estimate['salesperson'] == update_data['salesperson']:
+                    print_success(f"Updated estimate salesperson: {updated_estimate['salesperson']}")
+                else:
+                    print_error("Estimate salesperson update did not persist correctly")
+                    return False
+                
+                # Verify recalculated totals
+                if len(updated_estimate['line_items']) == 1:
+                    print_success("Line items updated correctly")
+                else:
+                    print_error("Line items not updated correctly")
+                    return False
+                
+                test_estimates[0] = updated_estimate
+            else:
+                print_error(f"Failed to update estimate {estimate_id}: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error updating estimate {estimate_id}: {str(e)}")
+            return False
+    
+    # Test estimate status update
+    print("\n📊 Testing Estimate Status Update...")
+    if test_estimates:
+        estimate_id = test_estimates[0]['id']
+        status_data = {"status": "sent"}
+        try:
+            response = requests.put(f"{API_URL}/estimates/{estimate_id}/status", json=status_data)
+            if response.status_code == 200:
+                print_success("Estimate status updated to 'sent'")
+                
+                # Verify status was updated
+                get_response = requests.get(f"{API_URL}/estimates/{estimate_id}")
+                if get_response.status_code == 200:
+                    estimate = get_response.json()
+                    if estimate.get('status') == 'sent':
+                        print_success("Status update persisted correctly")
+                    else:
+                        print_error("Status update did not persist")
+                        return False
+            else:
+                print_error(f"Failed to update estimate status: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error updating estimate status: {str(e)}")
+            return False
+    
+    # Test error handling - non-existent estimate
+    print("\n🚫 Testing Error Handling...")
+    try:
+        response = requests.get(f"{API_URL}/estimates/non-existent-id")
+        if response.status_code == 404:
+            print_success("Correctly returned 404 for non-existent estimate")
+        else:
+            print_error(f"Expected 404 for non-existent estimate, got {response.status_code}")
+    except Exception as e:
+        print_error(f"Error testing non-existent estimate: {str(e)}")
+    
+    print_success("Estimate CRUD operations completed successfully")
+    return True
+
+def test_estimate_line_item_calculations():
+    """Test detailed line item calculations with quantity, rate, discount, and tax"""
+    print_test_header("Estimate Line Item Calculations")
+    
+    if not test_customers:
+        print_error("No test customers available for line item testing")
+        return False
+    
+    # Test complex line item calculations
+    print("\n🧮 Testing Complex Line Item Calculations...")
+    
+    complex_estimate_data = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "CALC-TEST-001",
+        "line_items": [
+            {
+                "product_name": "Premium Website Package",
+                "description": "E-commerce website with 5 products",
+                "quantity": 5.0,
+                "rate": 10000.00,
+                "discount": 20.0,  # 20% discount
+                "tax_group": "GST18"  # 18% tax
+            },
+            {
+                "product_name": "SEO Optimization",
+                "description": "Monthly SEO service",
+                "quantity": 12.0,  # 12 months
+                "rate": 2500.00,
+                "discount": 10.0,  # 10% discount
+                "tax_group": "GST18"  # 18% tax
+            },
+            {
+                "product_name": "Domain & SSL",
+                "description": "Domain registration and SSL certificate",
+                "quantity": 1.0,
+                "rate": 3000.00,
+                "discount": 0.0,  # No discount
+                "tax_group": "GST0"  # 0% tax
+            },
+            {
+                "product_name": "Maintenance Contract",
+                "description": "Annual maintenance and support",
+                "quantity": 2.0,  # 2 years
+                "rate": 15000.00,
+                "discount": 25.0,  # 25% discount
+                "tax_group": "GST28"  # 28% tax
+            }
+        ],
+        "adjustment": -2500.00,  # Negative adjustment
+        "customer_notes": "Complex calculation test"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=complex_estimate_data)
+        if response.status_code == 200:
+            estimate = response.json()
+            
+            print_success(f"Created complex estimate: {estimate['estimate_number']}")
+            
+            # Manual calculation verification
+            expected_calculations = []
+            total_subtotal = 0.0
+            total_tax = 0.0
+            
+            for i, item_data in enumerate(complex_estimate_data['line_items']):
+                # Calculate line totals
+                line_subtotal = item_data['quantity'] * item_data['rate']
+                discount_amount = line_subtotal * (item_data['discount'] / 100)
+                line_amount_after_discount = line_subtotal - discount_amount
+                
+                # Get tax percentage
+                tax_percentage = get_expected_tax_percentage(item_data['tax_group'])
+                tax_amount = line_amount_after_discount * (tax_percentage / 100)
+                total_line_amount = line_amount_after_discount + tax_amount
+                
+                expected_calculations.append({
+                    "line_subtotal": line_subtotal,
+                    "discount_amount": discount_amount,
+                    "line_amount_after_discount": line_amount_after_discount,
+                    "tax_amount": tax_amount,
+                    "total_line_amount": total_line_amount
+                })
+                
+                total_subtotal += line_amount_after_discount
+                total_tax += tax_amount
+                
+                # Verify individual line item calculations
+                actual_item = estimate['line_items'][i]
+                if abs(actual_item['amount'] - total_line_amount) < 0.01:
+                    print_success(f"Line {i+1} calculation correct: ₹{actual_item['amount']}")
+                else:
+                    print_error(f"Line {i+1} calculation error: Expected ₹{total_line_amount}, got ₹{actual_item['amount']}")
+                    return False
+                
+                # Verify tax percentage is set correctly
+                if actual_item['tax_percentage'] == tax_percentage:
+                    print_success(f"Line {i+1} tax percentage correct: {tax_percentage}%")
+                else:
+                    print_error(f"Line {i+1} tax percentage error: Expected {tax_percentage}%, got {actual_item['tax_percentage']}%")
+                    return False
+            
+            # Verify total calculations
+            expected_total = total_subtotal + total_tax + complex_estimate_data['adjustment']
+            
+            if abs(estimate['subtotal'] - total_subtotal) < 0.01:
+                print_success(f"Total subtotal correct: ₹{estimate['subtotal']}")
+            else:
+                print_error(f"Total subtotal error: Expected ₹{total_subtotal}, got ₹{estimate['subtotal']}")
+                return False
+            
+            if abs(estimate['total_tax'] - total_tax) < 0.01:
+                print_success(f"Total tax correct: ₹{estimate['total_tax']}")
+            else:
+                print_error(f"Total tax error: Expected ₹{total_tax}, got ₹{estimate['total_tax']}")
+                return False
+            
+            if abs(estimate['total_amount'] - expected_total) < 0.01:
+                print_success(f"Final total correct: ₹{estimate['total_amount']}")
+            else:
+                print_error(f"Final total error: Expected ₹{expected_total}, got ₹{estimate['total_amount']}")
+                return False
+            
+            # Display detailed breakdown
+            print_info("📋 Calculation Breakdown:")
+            for i, calc in enumerate(expected_calculations):
+                item_data = complex_estimate_data['line_items'][i]
+                print_info(f"  Line {i+1}: {item_data['product_name']}")
+                print_info(f"    Qty: {item_data['quantity']} × Rate: ₹{item_data['rate']} = ₹{calc['line_subtotal']}")
+                print_info(f"    Discount: {item_data['discount']}% = -₹{calc['discount_amount']}")
+                print_info(f"    After Discount: ₹{calc['line_amount_after_discount']}")
+                print_info(f"    Tax ({get_expected_tax_percentage(item_data['tax_group'])}%): ₹{calc['tax_amount']}")
+                print_info(f"    Line Total: ₹{calc['total_line_amount']}")
+            
+            print_info(f"  Subtotal: ₹{total_subtotal}")
+            print_info(f"  Total Tax: ₹{total_tax}")
+            print_info(f"  Adjustment: ₹{complex_estimate_data['adjustment']}")
+            print_info(f"  Final Total: ₹{expected_total}")
+            
+        else:
+            print_error(f"Failed to create complex estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing complex calculations: {str(e)}")
+        return False
+    
+    print_success("Estimate Line Item Calculations completed successfully")
+    return True
+
+def test_estimate_integration_with_customer_and_product_data():
+    """Test estimate integration with existing Customer and Product Master data"""
+    print_test_header("Estimate Integration with Customer and Product Data")
+    
+    # First, create some products for integration testing
+    print("\n🛍️  Creating Products for Integration Testing...")
+    
+    integration_products = [
+        {
+            "product_name": "E-commerce Website Development",
+            "hsn_code": "998314",
+            "tax_group": "GST18",
+            "sale_price": 75000.00
+        },
+        {
+            "product_name": "Mobile App Development",
+            "hsn_code": "998315", 
+            "tax_group": "GST28",
+            "sale_price": 100000.00
+        },
+        {
+            "product_name": "Digital Marketing Package",
+            "hsn_code": "998316",
+            "tax_group": "GST18",
+            "sale_price": 25000.00
+        }
+    ]
+    
+    created_products = []
+    
+    for product_data in integration_products:
+        try:
+            response = requests.post(f"{API_URL}/products", json=product_data)
+            if response.status_code == 200:
+                product = response.json()
+                created_products.append(product)
+                print_success(f"Created product: {product['product_name']}")
+            else:
+                print_error(f"Failed to create product: {response.status_code}")
+                return False
+        except Exception as e:
+            print_error(f"Error creating product: {str(e)}")
+            return False
+    
+    if len(created_products) < 3:
+        print_error("Could not create sufficient products for integration testing")
+        return False
+    
+    # Test estimate creation with product integration
+    print("\n🔗 Testing Estimate Creation with Product Integration...")
+    
+    if not test_customers:
+        print_error("No test customers available for integration testing")
+        return False
+    
+    # Create estimate using created products
+    integrated_estimate_data = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "INT-2024-001",
+        "salesperson": "Integration Tester",
+        "line_items": [
+            {
+                "product_id": created_products[0]['id'],
+                "product_name": created_products[0]['product_name'],
+                "description": "Complete e-commerce solution with payment gateway",
+                "quantity": 1.0,
+                "rate": created_products[0]['sale_price'],
+                "discount": 10.0,
+                "tax_group": created_products[0]['tax_group']
+            },
+            {
+                "product_id": created_products[1]['id'],
+                "product_name": created_products[1]['product_name'],
+                "description": "iOS and Android mobile application",
+                "quantity": 1.0,
+                "rate": created_products[1]['sale_price'],
+                "discount": 5.0,
+                "tax_group": created_products[1]['tax_group']
+            },
+            {
+                "product_id": created_products[2]['id'],
+                "product_name": created_products[2]['product_name'],
+                "description": "6-month digital marketing campaign",
+                "quantity": 6.0,  # 6 months
+                "rate": created_products[2]['sale_price'] / 6,  # Monthly rate
+                "discount": 15.0,
+                "tax_group": created_products[2]['tax_group']
+            }
+        ],
+        "adjustment": 0.0,
+        "customer_notes": "Integrated estimate with product master data"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=integrated_estimate_data)
+        if response.status_code == 200:
+            estimate = response.json()
+            print_success(f"Created integrated estimate: {estimate['estimate_number']}")
+            
+            # Verify product integration
+            for i, line_item in enumerate(estimate['line_items']):
+                expected_product = created_products[i]
+                
+                # Verify product_id is stored
+                if line_item.get('product_id') == expected_product['id']:
+                    print_success(f"Line {i+1}: Product ID linked correctly")
+                else:
+                    print_error(f"Line {i+1}: Product ID not linked correctly")
+                    return False
+                
+                # Verify product name matches
+                if line_item.get('product_name') == expected_product['product_name']:
+                    print_success(f"Line {i+1}: Product name matches")
+                else:
+                    print_error(f"Line {i+1}: Product name mismatch")
+                    return False
+                
+                # Verify tax group and percentage match
+                if line_item.get('tax_group') == expected_product['tax_group']:
+                    print_success(f"Line {i+1}: Tax group matches")
+                else:
+                    print_error(f"Line {i+1}: Tax group mismatch")
+                    return False
+                
+                expected_tax_percentage = get_expected_tax_percentage(expected_product['tax_group'])
+                if line_item.get('tax_percentage') == expected_tax_percentage:
+                    print_success(f"Line {i+1}: Tax percentage calculated from product tax group")
+                else:
+                    print_error(f"Line {i+1}: Tax percentage not calculated correctly")
+                    return False
+            
+            # Test customer integration
+            print("\n👤 Testing Customer Integration...")
+            
+            # Verify customer_id is stored correctly
+            if estimate.get('customer_id') == test_customers[0]['id']:
+                print_success("Customer ID linked correctly in estimate")
+            else:
+                print_error("Customer ID not linked correctly")
+                return False
+            
+            # Get customer details to verify integration
+            customer_response = requests.get(f"{API_URL}/customers/{test_customers[0]['id']}")
+            if customer_response.status_code == 200:
+                customer = customer_response.json()
+                print_success(f"Customer integration verified: {customer['name']}")
+                
+                # Display integration summary
+                print_info("🔗 Integration Summary:")
+                print_info(f"  Customer: {customer['name']} ({customer['email']})")
+                print_info(f"  Estimate: {estimate['estimate_number']}")
+                print_info(f"  Products Used: {len(estimate['line_items'])}")
+                print_info(f"  Total Amount: ₹{estimate['total_amount']}")
+                
+            else:
+                print_error("Failed to retrieve customer for integration verification")
+                return False
+            
+        else:
+            print_error(f"Failed to create integrated estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing estimate integration: {str(e)}")
+        return False
+    
+    # Test estimate with mixed product and non-product line items
+    print("\n🔀 Testing Mixed Product and Custom Line Items...")
+    
+    mixed_estimate_data = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "MIX-2024-001",
+        "line_items": [
+            {
+                "product_id": created_products[0]['id'],
+                "product_name": created_products[0]['product_name'],
+                "description": "Standard e-commerce package",
+                "quantity": 1.0,
+                "rate": created_products[0]['sale_price'],
+                "discount": 0.0,
+                "tax_group": created_products[0]['tax_group']
+            },
+            {
+                "product_name": "Custom Integration Service",
+                "description": "Custom third-party API integration",
+                "quantity": 20.0,  # 20 hours
+                "rate": 2500.00,  # Per hour
+                "discount": 0.0,
+                "tax_group": "GST18"
+            }
+        ],
+        "adjustment": 0.0,
+        "customer_notes": "Mixed product and custom service estimate"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=mixed_estimate_data)
+        if response.status_code == 200:
+            mixed_estimate = response.json()
+            print_success(f"Created mixed estimate: {mixed_estimate['estimate_number']}")
+            
+            # Verify first line item has product_id
+            if mixed_estimate['line_items'][0].get('product_id'):
+                print_success("Product-based line item has product_id")
+            else:
+                print_error("Product-based line item missing product_id")
+                return False
+            
+            # Verify second line item doesn't have product_id (custom service)
+            if not mixed_estimate['line_items'][1].get('product_id'):
+                print_success("Custom line item correctly has no product_id")
+            else:
+                print_error("Custom line item unexpectedly has product_id")
+                return False
+            
+        else:
+            print_error(f"Failed to create mixed estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing mixed estimate: {str(e)}")
+        return False
+    
+    print_success("Estimate Integration with Customer and Product Data completed successfully")
+    return True
+
+def test_estimate_tax_calculations():
+    """Test tax calculations based on product tax groups"""
+    print_test_header("Estimate Tax Calculations Based on Product Tax Groups")
+    
+    if not test_customers:
+        print_error("No test customers available for tax calculation testing")
+        return False
+    
+    # Test all tax groups in a single estimate
+    print("\n💰 Testing All Tax Groups in Single Estimate...")
+    
+    tax_test_estimate = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "TAX-TEST-001",
+        "line_items": [
+            {
+                "product_name": "GST 0% Service",
+                "description": "Export service (0% GST)",
+                "quantity": 1.0,
+                "rate": 10000.00,
+                "discount": 0.0,
+                "tax_group": "GST0"
+            },
+            {
+                "product_name": "GST 5% Product",
+                "description": "Essential goods (5% GST)",
+                "quantity": 2.0,
+                "rate": 5000.00,
+                "discount": 10.0,
+                "tax_group": "GST5"
+            },
+            {
+                "product_name": "GST 12% Service",
+                "description": "Standard service (12% GST)",
+                "quantity": 1.0,
+                "rate": 15000.00,
+                "discount": 5.0,
+                "tax_group": "GST12"
+            },
+            {
+                "product_name": "GST 18% Product",
+                "description": "IT services (18% GST)",
+                "quantity": 3.0,
+                "rate": 8000.00,
+                "discount": 15.0,
+                "tax_group": "GST18"
+            },
+            {
+                "product_name": "GST 28% Luxury",
+                "description": "Luxury service (28% GST)",
+                "quantity": 1.0,
+                "rate": 20000.00,
+                "discount": 20.0,
+                "tax_group": "GST28"
+            }
+        ],
+        "adjustment": 0.0,
+        "customer_notes": "Tax calculation test for all GST rates"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=tax_test_estimate)
+        if response.status_code == 200:
+            estimate = response.json()
+            print_success(f"Created tax test estimate: {estimate['estimate_number']}")
+            
+            # Verify each line item's tax calculation
+            expected_total_tax = 0.0
+            expected_subtotal = 0.0
+            
+            for i, line_item in enumerate(estimate['line_items']):
+                item_data = tax_test_estimate['line_items'][i]
+                
+                # Calculate expected values
+                line_subtotal = item_data['quantity'] * item_data['rate']
+                discount_amount = line_subtotal * (item_data['discount'] / 100)
+                line_amount_after_discount = line_subtotal - discount_amount
+                
+                expected_tax_percentage = get_expected_tax_percentage(item_data['tax_group'])
+                expected_tax_amount = line_amount_after_discount * (expected_tax_percentage / 100)
+                expected_line_total = line_amount_after_discount + expected_tax_amount
+                
+                expected_subtotal += line_amount_after_discount
+                expected_total_tax += expected_tax_amount
+                
+                # Verify tax percentage
+                if line_item['tax_percentage'] == expected_tax_percentage:
+                    print_success(f"Line {i+1} ({item_data['tax_group']}): Tax percentage correct ({expected_tax_percentage}%)")
+                else:
+                    print_error(f"Line {i+1}: Tax percentage error - Expected {expected_tax_percentage}%, got {line_item['tax_percentage']}%")
+                    return False
+                
+                # Verify line total calculation
+                if abs(line_item['amount'] - expected_line_total) < 0.01:
+                    print_success(f"Line {i+1}: Total calculation correct (₹{line_item['amount']})")
+                else:
+                    print_error(f"Line {i+1}: Total calculation error - Expected ₹{expected_line_total}, got ₹{line_item['amount']}")
+                    return False
+            
+            # Verify overall totals
+            if abs(estimate['subtotal'] - expected_subtotal) < 0.01:
+                print_success(f"Overall subtotal correct: ₹{estimate['subtotal']}")
+            else:
+                print_error(f"Overall subtotal error: Expected ₹{expected_subtotal}, got ₹{estimate['subtotal']}")
+                return False
+            
+            if abs(estimate['total_tax'] - expected_total_tax) < 0.01:
+                print_success(f"Overall tax total correct: ₹{estimate['total_tax']}")
+            else:
+                print_error(f"Overall tax total error: Expected ₹{expected_total_tax}, got ₹{estimate['total_tax']}")
+                return False
+            
+            # Display tax breakdown
+            print_info("📊 Tax Breakdown by GST Rate:")
+            tax_breakdown = {}
+            for i, line_item in enumerate(estimate['line_items']):
+                item_data = tax_test_estimate['line_items'][i]
+                tax_group = item_data['tax_group']
+                tax_percentage = line_item['tax_percentage']
+                
+                line_subtotal = item_data['quantity'] * item_data['rate']
+                discount_amount = line_subtotal * (item_data['discount'] / 100)
+                line_amount_after_discount = line_subtotal - discount_amount
+                tax_amount = line_amount_after_discount * (tax_percentage / 100)
+                
+                if tax_group not in tax_breakdown:
+                    tax_breakdown[tax_group] = {'taxable_amount': 0.0, 'tax_amount': 0.0}
+                
+                tax_breakdown[tax_group]['taxable_amount'] += line_amount_after_discount
+                tax_breakdown[tax_group]['tax_amount'] += tax_amount
+            
+            for tax_group, amounts in tax_breakdown.items():
+                tax_rate = get_expected_tax_percentage(tax_group)
+                print_info(f"  {tax_group} ({tax_rate}%): Taxable ₹{amounts['taxable_amount']:.2f}, Tax ₹{amounts['tax_amount']:.2f}")
+            
+        else:
+            print_error(f"Failed to create tax test estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing tax calculations: {str(e)}")
+        return False
+    
+    # Test edge cases for tax calculations
+    print("\n🔍 Testing Tax Calculation Edge Cases...")
+    
+    edge_case_estimate = {
+        "customer_id": test_customers[0]['id'],
+        "reference_number": "TAX-EDGE-001",
+        "line_items": [
+            {
+                "product_name": "Zero Rate Item",
+                "description": "Item with zero rate",
+                "quantity": 1.0,
+                "rate": 0.00,
+                "discount": 0.0,
+                "tax_group": "GST18"
+            },
+            {
+                "product_name": "100% Discount Item",
+                "description": "Item with full discount",
+                "quantity": 1.0,
+                "rate": 10000.00,
+                "discount": 100.0,
+                "tax_group": "GST28"
+            },
+            {
+                "product_name": "High Quantity Item",
+                "description": "Item with high quantity",
+                "quantity": 1000.0,
+                "rate": 1.00,
+                "discount": 0.0,
+                "tax_group": "GST5"
+            }
+        ],
+        "adjustment": 0.0,
+        "customer_notes": "Edge case tax calculations"
+    }
+    
+    try:
+        response = requests.post(f"{API_URL}/estimates", json=edge_case_estimate)
+        if response.status_code == 200:
+            edge_estimate = response.json()
+            print_success(f"Created edge case estimate: {edge_estimate['estimate_number']}")
+            
+            # Verify zero rate item
+            zero_rate_item = edge_estimate['line_items'][0]
+            if zero_rate_item['amount'] == 0.0:
+                print_success("Zero rate item calculated correctly (₹0.00)")
+            else:
+                print_error(f"Zero rate item calculation error: {zero_rate_item['amount']}")
+                return False
+            
+            # Verify 100% discount item
+            full_discount_item = edge_estimate['line_items'][1]
+            if full_discount_item['amount'] == 0.0:
+                print_success("100% discount item calculated correctly (₹0.00)")
+            else:
+                print_error(f"100% discount item calculation error: {full_discount_item['amount']}")
+                return False
+            
+            # Verify high quantity item
+            high_qty_item = edge_estimate['line_items'][2]
+            expected_amount = 1000.0 * 1.00 * 1.05  # 1000 qty × ₹1 × 1.05 (5% tax)
+            if abs(high_qty_item['amount'] - expected_amount) < 0.01:
+                print_success(f"High quantity item calculated correctly (₹{high_qty_item['amount']})")
+            else:
+                print_error(f"High quantity item calculation error: Expected ₹{expected_amount}, got ₹{high_qty_item['amount']}")
+                return False
+            
+        else:
+            print_error(f"Failed to create edge case estimate: {response.status_code}")
+            return False
+    except Exception as e:
+        print_error(f"Error testing edge case tax calculations: {str(e)}")
+        return False
+    
+    print_success("Estimate Tax Calculations completed successfully")
+    return True
+
 def main():
     """Run all backend API tests"""
     print("🚀 Starting Comprehensive Backend API Testing")
