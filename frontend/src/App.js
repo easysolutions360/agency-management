@@ -106,6 +106,7 @@ const App = () => {
   // Estimate states
   const [estimates, setEstimates] = useState([]);
   const [estimateForm, setEstimateForm] = useState({
+    estimate_number: "EST-0001",
     customer_id: "",
     reference_number: "",
     estimate_date: new Date().toISOString().split('T')[0],
