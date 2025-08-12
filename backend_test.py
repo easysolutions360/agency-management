@@ -3818,6 +3818,11 @@ def main():
         ("Tax Groups Endpoint", test_tax_groups_endpoint),
         ("Enhanced Customer Endpoints", test_enhanced_customer_endpoints),
         ("Product Tax Calculation Logic", test_product_tax_calculation_logic),
+        # NEW ESTIMATE MODULE TESTS
+        ("Estimate CRUD Operations", test_estimate_crud_operations),
+        ("Estimate Line Item Calculations", test_estimate_line_item_calculations),
+        ("Estimate Integration with Customer and Product Data", test_estimate_integration_with_customer_and_product_data),
+        ("Estimate Tax Calculations", test_estimate_tax_calculations),
         ("Edge Cases and Error Handling", test_edge_cases)
     ]
     
