@@ -375,6 +375,7 @@ const App = () => {
     fetchBusinessFinancials();
     fetchProducts();
     fetchTaxGroups();
+    fetchEstimates();
   }, []);
 
   useEffect(() => {
