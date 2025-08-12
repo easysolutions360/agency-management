@@ -378,6 +378,15 @@ const App = () => {
     fetchEstimates();
   }, []);
 
+  // Auto-generate estimate number when switching to estimates tab
+  useEffect(() => {
+    if (activeTab === 'estimates') {
+      generateNextEstimateNumber().then(num => {
+        setEstimateForm(prev => ({ ...prev, estimate_number: num }));
+      });
+    }
+  }, [activeTab]);
+
   useEffect(() => {
     if (customers.length > 0) {
       fetchCustomerPaymentSummaries();
