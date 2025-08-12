@@ -2204,6 +2204,12 @@ const App = () => {
             onClick={() => setActiveTab("products")}
           />
           <TabButton
+            tab="estimates"
+            label="Create Estimate"
+            isActive={activeTab === "estimates"}
+            onClick={() => setActiveTab("estimates")}
+          />
+          <TabButton
             tab="reports"
             label="Reports"
             isActive={activeTab === "reports"}
