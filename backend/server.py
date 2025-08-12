@@ -1228,31 +1228,49 @@ async def generate_estimate_number():
         return "EST-0001"
 
 # Helper function to calculate line item amounts and taxes
-def calculate_line_item_totals(line_items: List[EstimateLineItemCreate]) -> tuple:
+def calculate_line_item_totals(line_items) -> tuple:
     processed_items = []
     subtotal = 0.0
     total_tax = 0.0
     
     for item in line_items:
+        # Handle both EstimateLineItemCreate objects and dictionaries
+        if isinstance(item, dict):
+            quantity = item.get('quantity', 1.0)
+            rate = item.get('rate', 0.0)
+            discount = item.get('discount', 0.0)
+            tax_group = item.get('tax_group', 'GST0')
+            product_id = item.get('product_id')
+            product_name = item.get('product_name', '')
+            description = item.get('description', '')
+        else:
+            quantity = item.quantity
+            rate = item.rate
+            discount = item.discount
+            tax_group = item.tax_group
+            product_id = item.product_id
+            product_name = item.product_name
+            description = item.description
+        
         # Calculate line amount after discount
-        line_subtotal = item.quantity * item.rate
-        discount_amount = line_subtotal * (item.discount / 100)
+        line_subtotal = quantity * rate
+        discount_amount = line_subtotal * (discount / 100)
         line_amount_after_discount = line_subtotal - discount_amount
         
         # Get tax percentage and calculate tax
-        tax_percentage = get_tax_percentage(item.tax_group)
+        tax_percentage = get_tax_percentage(tax_group)
         tax_amount = line_amount_after_discount * (tax_percentage / 100)
         total_line_amount = line_amount_after_discount + tax_amount
         
         # Create processed line item
         processed_item = EstimateLineItem(
-            product_id=item.product_id,
-            product_name=item.product_name,
-            description=item.description,
-            quantity=item.quantity,
-            rate=item.rate,
-            discount=item.discount,
-            tax_group=item.tax_group,
+            product_id=product_id,
+            product_name=product_name,
+            description=description,
+            quantity=quantity,
+            rate=rate,
+            discount=discount,
+            tax_group=tax_group,
             tax_percentage=tax_percentage,
             amount=total_line_amount
         )
